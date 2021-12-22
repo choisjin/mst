@@ -1,0 +1,7 @@
+qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
+This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
+
+Available platform plugins are: eglfs, linuxfb, minimal, minimalegl, offscreen, vnc, wayland-egl, wayland, wayland-xcomposite-egl, wayland-xcomposite-glx, webgl, xcb.
+
+PyQt5 실행오류 / 해결방법 : 필요한 라이브러리가 없어서 발생한 문제. 
+libxcb-xinerama0 라이브러리를 설치하면 된다. sudo apt install libxcb-xinerama0-dev
