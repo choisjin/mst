@@ -1,0 +1,2 @@
+OpenCV사용(window환경) 얼굴 추적 카메라	//  https://kocoafab.cc/make/view/156
+Pi, PCA9685모듈을 이용한 얼굴 추적 카메라  //  https://blog.naver.com/aul-_-/221468809744
