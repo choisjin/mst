@@ -7,8 +7,8 @@ import Adafruit_PCA9685 # adafruit pca9685모듈 라이브러리 설치는 https
 import picamera
 pwm = Adafruit_PCA9685.PCA9685() 
 
-servo_x = 130
-servo_y = 130
+servo_x = 90
+servo_y = 90
 
 pwm.set_pwm(1, 0, servo_x) #servo_x를 오른쪽에 위치.
 pwm.set_pwm(0, 0, servo_y) #servo_y를 위쪽을 향하게 위치.
