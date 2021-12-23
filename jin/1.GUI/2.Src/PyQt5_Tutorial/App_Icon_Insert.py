@@ -1,4 +1,5 @@
 ## Ex 3-2. 어플리케이션 아이콘 넣기.
+## https://codetorial.net/pyqt5/basics/icon.html
 
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget
