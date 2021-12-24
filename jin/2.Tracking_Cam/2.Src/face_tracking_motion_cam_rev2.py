@@ -1,6 +1,32 @@
+#-*- coding:utf-8 -*-
 
+# Raspberry usb cam topic connect add
+import sys
+import rospy
 import cv2 
 import Adafruit_PCA9685 
+import numpy as np
+from std_msgs.msg import String
+
+
+class CompressedImages:
+    ''' Constructor '''
+    def __init__(self):
+        
+        # Bridge Instance
+        self.bridge = CvBridge()
+        
+        # Get Compressed Image Topic from Subscriber
+        img_topic = "/raspicam_node/image/compressed"
+        self.image_sub = rospy.Subscriber(img_topic, CompressedImage, self.callback)
+
+    ''' Callback Method '''
+    def callback(self, data):
+        try:
+            # Convert Image to OpenCV Format (Compressed Image Message to CV2)
+            cv_image = self.bridge.compressed_imgmsg_to_cv2(data, "bgr8")
+        except CvBridgeError as e:
+            print(e)
 
 servo_x = 320   # servo_x defalt position
 servo_y = 390   # servo_y defalt position
