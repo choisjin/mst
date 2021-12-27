@@ -26,14 +26,21 @@ def set_servo_pulse(channel, pulse):
 
 class Servo_Subscriber():
     def __init__(self):
-        while True:
-            self._sub_x = rospy.Subscriber('/servo_x3', Int64, self.callback, queue_size=1)
-            self._sub_y = rospy.Subscriber('/servo_y3', Int64, self.callback, queue_size=1)
-       
-    def callback(self, servo_msg):
-        while True():
-            pwm.set_pwm(1, 0, self._sub_x)
-            pwm.set_pwm(0, 0, self._sub_y)
+        self._sub_x = rospy.Subscriber('/servo_x3', Int64, self.callback, queue_size=1)
+        self._sub_y = rospy.Subscriber('/servo_y3', Int64, self.callback, queue_size=1)
+        
+        #print(self._sub_x)
+        #print(type(self._sub_x))
+        # print(int(self._sub_x))
+        # print(type(int(self._sub_x)))
+    
+    def callback(self,servo_msg):
+        sub_x=servo_msg.data
+        #self._sub_y=int(self._sub_y)
+        print(sub_x)
+        print(type(sub_x))        
+        pwm.set_pwm(1, 0, sub_x)
+        #pwm.set_pwm(0, 0, int(self._sub_y))
     
     def main(self):
         rospy.spin()
