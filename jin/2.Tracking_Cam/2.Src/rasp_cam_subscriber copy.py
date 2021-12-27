@@ -50,9 +50,6 @@ class Rasp_Cam_Subscriber():
         if k == 27: 
             sys.exit()
     
-    def Servo_x(self, servo_x1):
-        print(1)
-    
     # 토픽 끊기지 않게 하기위한 스핀명령    
     def main(self):
         rospy.spin()
@@ -61,5 +58,4 @@ class Rasp_Cam_Subscriber():
 if __name__ == '__main__':
     rospy.init_node('Face_Tracking')
     node = Rasp_Cam_Subscriber()
-    node = Servo_x()
     node.main()
