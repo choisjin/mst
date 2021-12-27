@@ -6,9 +6,9 @@ import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import CompressedImage
-from std_msgs.msg import Int8
+from std_msgs.msg import Int64
 from std_msgs.msg import String
-
+import time
 # import Adafruit_PCA9685 
 
 global servo_x
@@ -26,7 +26,8 @@ class Rasp_Cam_Subscriber():
             self._sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.callback, queue_size=1)
  
         self.bridge = CvBridge()
- 
+        
+
     def callback(self, image_msg):  
  
         if self.selecting_sub_image == "compressed":
@@ -35,7 +36,6 @@ class Rasp_Cam_Subscriber():
             cv_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
         elif self.selecting_sub_image == "raw":
             cv_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
-
 
         # 변수 선언 및 학습데이터 로드    
         servo_x = 320   # servo_x defalt position
@@ -80,24 +80,49 @@ class Rasp_Cam_Subscriber():
 
             if servo_x1 < midScreenX-midScreenWindow:
                 servo_x += 1
+                pub = rospy.Publisher('servo_x3', Int64, queue_size=1)
+                #rospy.init_node('talker', anonymous=True)
+                #rospy.loginfo(hello_str)
+                pub.publish(Int64(servo_x))      
+                print(type(servo_x))
+                print('1', Int64(servo_x))                
                 #pwm.set_pwm(1, 0, servo_x)
 
             elif servo_x1 > midScreenX+midScreenWindow:
                 servo_x -= 1
+                pub = rospy.Publisher('servo_x3', Int64, queue_size=1)
+                #rospy.init_node('talker', anonymous=True)
+                #rospy.loginfo(hello_str)
+                pub.publish(Int64(servo_x))
+                print(type(servo_x))
+                print('2', Int64(servo_x))                                
                 #pwm.set_pwm(1, 0, servo_x)
 
             if servo_y1 > midScreenY+midScreenWindow:
                 servo_y += 1
+                pub = rospy.Publisher('servo_y3', Int64, queue_size=1)
+                #rospy.init_node('talker', anonymous=True)
+                #rospy.loginfo(hello_str)
+                pub.publish(Int64(servo_y))
+                print(type(servo_y))
+                print('3',Int64(servo_y))                           
                 #pwm.set_pwm(0, 0, servo_y)
 
             elif servo_y1 < midScreenY-midScreenWindow:
                 servo_y -= 1
+                pub = rospy.Publisher('servo_y3', Int64, queue_size=1)
+                #rospy.init_node('talker', anonymous=True)
+                #rospy.loginfo(hello_str)
+                pub.publish(Int64(servo_y))
+                print(type(servo_y))
+                print('4',Int64(servo_y))           
                 #pwm.set_pwm(0, 0, servo_y)            
         # 이미지 출력
         cv2.imshow('Face_Tracking', cv_image)
         k = cv2.waitKey(1) & 0xff
-        if k == 27: 
-            sys.exit()
+        
+        # if k == 27: 
+        #     sys.exit()
 
     # def servo_rotate(self):
     #     pub = rospy.Publisher('servo_rotate', Int8, queue_size=1)
@@ -112,22 +137,21 @@ class Rasp_Cam_Subscriber():
     def main(self):
         rospy.spin()
 
-def talker():
-        pub = rospy.Publisher('chatter', String, queue_size=10)
-        rospy.init_node('talker', anonymous=True)
-        rate = rospy.Rate(10) # 10hz
-        while not rospy.is_shutdown():
-            hello_str = "hello world %s" % rospy.get_time()
-            rospy.loginfo(hello_str)
-            pub.publish(hello_str)
-            rate.sleep()    
+# def talker():
+#         pub = rospy.Publisher('chatter', String, queue_size=10)
+#         rospy.init_node('talker', anonymous=True)
+#         rate = rospy.Rate(10) # 10hz
+#         while not rospy.is_shutdown():
+#             hello_str = "hello world %s" % rospy.get_time()
+#             rospy.loginfo(hello_str)
+#             pub.publish(hello_str)
+#             rate.sleep()    
 
 # 클래스 내 함수 실행 
 if __name__ == '__main__':
     rospy.init_node('Face_Tracking')
     node = Rasp_Cam_Subscriber()
     node.main()
-    try:
-        talker()
-    except rospy.ROSInterruptException:
-        pass
+    # time.sleep(1)
+    # talker()
+    # time.sleep(1)

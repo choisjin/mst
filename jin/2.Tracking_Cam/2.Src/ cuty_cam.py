@@ -35,7 +35,7 @@ while True:
     ret, img = cap.read()
     #img = cv2.flip(img, 0)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    faces = faceCascade.detectMultiScale(
+    faces = faceCascade.detectMultiScale(s
         gray,
         scaleFactor=1.2,
         minNeighbors=5,
