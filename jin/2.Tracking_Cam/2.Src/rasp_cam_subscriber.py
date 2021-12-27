@@ -26,7 +26,7 @@ class Rasp_Cam_Subscriber():
             self._sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.callback, queue_size=1)
  
         self.bridge = CvBridge()
-        
+
 
     def callback(self, image_msg):  
  
@@ -80,7 +80,7 @@ class Rasp_Cam_Subscriber():
 
             if servo_x1 < midScreenX-midScreenWindow:
                 servo_x += 1
-                pub = rospy.Publisher('servo_x3', Int64, queue_size=1)
+                pub = rospy.Publisher('servo_x3', Int64, queue_size=10)
                 #rospy.init_node('talker', anonymous=True)
                 #rospy.loginfo(hello_str)
                 pub.publish(Int64(servo_x))      
@@ -90,7 +90,7 @@ class Rasp_Cam_Subscriber():
 
             elif servo_x1 > midScreenX+midScreenWindow:
                 servo_x -= 1
-                pub = rospy.Publisher('servo_x3', Int64, queue_size=1)
+                pub = rospy.Publisher('servo_x3', Int64, queue_size=10)
                 #rospy.init_node('talker', anonymous=True)
                 #rospy.loginfo(hello_str)
                 pub.publish(Int64(servo_x))
@@ -100,7 +100,7 @@ class Rasp_Cam_Subscriber():
 
             if servo_y1 > midScreenY+midScreenWindow:
                 servo_y += 1
-                pub = rospy.Publisher('servo_y3', Int64, queue_size=1)
+                pub = rospy.Publisher('servo_y3', Int64, queue_size=10)
                 #rospy.init_node('talker', anonymous=True)
                 #rospy.loginfo(hello_str)
                 pub.publish(Int64(servo_y))
@@ -110,7 +110,7 @@ class Rasp_Cam_Subscriber():
 
             elif servo_y1 < midScreenY-midScreenWindow:
                 servo_y -= 1
-                pub = rospy.Publisher('servo_y3', Int64, queue_size=1)
+                pub = rospy.Publisher('servo_y3', Int64, queue_size=10)
                 #rospy.init_node('talker', anonymous=True)
                 #rospy.loginfo(hello_str)
                 pub.publish(Int64(servo_y))
