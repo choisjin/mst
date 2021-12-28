@@ -50,25 +50,26 @@ while True:
         if servo_x1 < midScreenX-midScreenWindow:
             servo_x += 1
             pwm.set_pwm(1, 0, servo_x)
-            print(servo_x)
+
         elif servo_x1 > midScreenX+midScreenWindow:
             servo_x -= 1
             pwm.set_pwm(1, 0, servo_x)
-            print(servo_x)
-        # if servo_y1 > midScreenY+midScreenWindow:
-            # servo_y += 1
-            # pwm.set_pwm(0, 0, servo_y)
-            # print(servo_y)
-        # elif servo_y1 < midScreenY-midScreenWindow:
-            # servo_y -= 1
-            # pwm.set_pwm(0, 0, servo_y)
-            # print(servo_y)
+
+        if servo_y1 > midScreenY+midScreenWindow:
+
+            pwm.set_pwm(0, 0, servo_y)
+
+        elif servo_y1 < midScreenY-midScreenWindow:
+            servo_y -= 1
+            pwm.set_pwm(0, 0, servo_y)
+    
     cv2.imshow('video', img) 
     k = cv2.waitKey(1) & 0xff
     if k == 27: 
         pwm.set_pwm(1, 0, 320) 
         pwm.set_pwm(0, 0, 390) 
         break
+
 cap.release()
 cv2.destroyAllWindows()
 
