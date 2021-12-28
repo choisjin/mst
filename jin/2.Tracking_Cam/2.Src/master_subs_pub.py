@@ -1,5 +1,4 @@
 #-*- coding:utf-8 -*-
-import sys
 import rospy
 import cv2
 import numpy as np
@@ -7,7 +6,6 @@ from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import Int64MultiArray
-# from std_msgs.msg import String
 
 class Rasp_Cam_Subscriber():
     def __init__(self):
