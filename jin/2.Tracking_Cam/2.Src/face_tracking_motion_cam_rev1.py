@@ -11,7 +11,7 @@ pwm.set_pwm(0, 0, servo_y)  # servo_y positionin itialize
 
 pwm.set_pwm_freq(60)            
 
-faceCascade = cv2.CascadeClassifier('/home/jin/mst/jin/2.Tracking_Cam/2.Src/Data/haarcascade_frontalface_default.xml')
+faceCascade = cv2.CascadeClassifier('/home/pi/mst/jin/2.Tracking_Cam/2.Src/Data/haarcascade_frontalface_default.xml')
 cap = cv2.VideoCapture(0)
 cap.set(3,640) # set Width
 cap.set(4,480) # set Height
@@ -50,19 +50,19 @@ while True:
         if servo_x1 < midScreenX-midScreenWindow:
             servo_x += 1
             pwm.set_pwm(1, 0, servo_x)
-
+            print(servo_x)
         elif servo_x1 > midScreenX+midScreenWindow:
             servo_x -= 1
             pwm.set_pwm(1, 0, servo_x)
-
-        if servo_y1 > midScreenY+midScreenWindow:
-            servo_y += 1
-            pwm.set_pwm(0, 0, servo_y)
-
-        elif servo_y1 < midScreenY-midScreenWindow:
-            servo_y -= 1
-            pwm.set_pwm(0, 0, servo_y)
-        
+            print(servo_x)
+        # if servo_y1 > midScreenY+midScreenWindow:
+            # servo_y += 1
+            # pwm.set_pwm(0, 0, servo_y)
+            # print(servo_y)
+        # elif servo_y1 < midScreenY-midScreenWindow:
+            # servo_y -= 1
+            # pwm.set_pwm(0, 0, servo_y)
+            # print(servo_y)
     cv2.imshow('video', img) 
     k = cv2.waitKey(1) & 0xff
     if k == 27: 

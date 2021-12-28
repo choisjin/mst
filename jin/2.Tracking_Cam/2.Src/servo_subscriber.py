@@ -2,17 +2,9 @@
 import sys
 import rospy
 import cv2
-import numpy as np
-from cv_bridge import CvBridge, CvBridgeError
-from sensor_msgs.msg import Image
-from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import Int64
-from std_msgs.msg import String
-import time
+#import time
 import Adafruit_PCA9685 
-
-pwm = Adafruit_PCA9685.PCA9685() 
-pwm.set_pwm_freq(60) 
 
 def set_servo_pulse(channel, pulse):
     pulse_length = 1000000    # 1,000,000 us per second
@@ -24,23 +16,22 @@ def set_servo_pulse(channel, pulse):
     pulse //= pulse_length
     pwm.set_pwm(channel, 0, pulse)
 
+pwm = Adafruit_PCA9685.PCA9685() 
+pwm.set_pwm_freq(60) 
+
 class Servo_Subscriber():
     def __init__(self):
         self._sub_x = rospy.Subscriber('/servo_x3', Int64, self.callback, queue_size=1)
         self._sub_y = rospy.Subscriber('/servo_y3', Int64, self.callback, queue_size=1)
-        
-        #print(self._sub_x)
-        #print(type(self._sub_x))
-        # print(int(self._sub_x))
-        # print(type(int(self._sub_x)))
     
     def callback(self,servo_msg):
-        sub_x=servo_msg.data
+        sub_x=self._sub_x.data
+        sub_y=self._sub_y.data
         #self._sub_y=int(self._sub_y)
         print(sub_x)
-        print(type(sub_x))        
-        pwm.set_pwm(1, 0, sub_x)
-        #pwm.set_pwm(0, 0, int(self._sub_y))
+        print(sub_y)
+        #print(type(sub_x))        
+        #pwm.set_pwm(1, 0, sub_x)
     
     def main(self):
         rospy.spin()
