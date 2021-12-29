@@ -1,6 +1,5 @@
 #-*- coding:utf-8 -*-
 import rospy
-import numpy as np
 from std_msgs.msg import Int64MultiArray
 import Adafruit_PCA9685 
 
@@ -26,30 +25,26 @@ class Servo_Subscriber():
         self._sub_x = rospy.Subscriber('/servo_x3', Int64MultiArray, self.callback, queue_size=1) # 객체인식 바운딩박스 x,y,w,h 토픽
         self.servo_x = 320   # servo_x defalt position
         self.servo_y = 390
-
+        pwm.set_pwm(1, 0, self.servo_x)
+        pwm.set_pwm(0, 0, self.servo_y)
     
     def callback(self,servo_msg):
-
-        x=servo_msg.data[0]
-        y=servo_msg.data[1]
-        w=servo_msg.data[2]
-        h=servo_msg.data[3]
+        x = servo_msg.data[0]
+        y = servo_msg.data[1]
+        w = servo_msg.data[2]
+        h = servo_msg.data[3]
         
         self.servo_x1 = int(x+w/2)
         self.servo_y1 = int(y+h/2)
-        
-        print(self.servo_x1)
-        print(self.servo_y1)
                
         if self.servo_x1 < midScreenX-midScreenWindow:
             self.servo_x += 1    
             pwm.set_pwm(1, 0, self.servo_x)
-
-              
+  
         elif self.servo_x1 > midScreenX+midScreenWindow:
             self.servo_x -= 1
             pwm.set_pwm(1, 0, self.servo_x)  
-                            
+                        
         if self.servo_y1 > midScreenY+midScreenWindow:
             self.servo_y += 1
             pwm.set_pwm(0, 0, self.servo_y) 
@@ -57,12 +52,7 @@ class Servo_Subscriber():
         elif self.servo_y1 < midScreenY-midScreenWindow:
             self.servo_y -= 1
             pwm.set_pwm(0, 0, self.servo_y)      
-        
-        self.servo_x = 320
-        self.servo_y = 320
-        pwm.set_pwm(1, 0, self.servo_x)
-        pwm.set_pwm(0, 0, self.servo_y)
-
+     
     def main(self):
         rospy.spin()
 
