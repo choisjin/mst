@@ -25,6 +25,7 @@ class Rasp_Cam_Subscriber():
             # 토픽데이터 cv용 데이터로 컨버팅
             np_arr = np.fromstring(image_msg.data, np.uint8)
             cv_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        
         elif self.selecting_sub_image == "raw":
             cv_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
 
