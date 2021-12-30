@@ -8,7 +8,7 @@ pwm.set_pwm_freq(60)
 
 midScreenX = 640/2    # 화면 x축 중앙
 midScreenY = 480/2    # 화면 y축 중앙
-midScreenWindow = 40  # 객체를 인식한 사각형이 중앙에서 벗어날 수 있는 여유 값
+midScreenWindow = 35  # 객체를 인식한 사각형이 중앙에서 벗어날 수 있는 여유 값
 
 def set_servo_pulse(channel, pulse):
     pulse_length = 1000000    # 1,000,000 us per second
