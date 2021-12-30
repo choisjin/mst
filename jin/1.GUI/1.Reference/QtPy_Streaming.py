@@ -11,7 +11,7 @@ class ShowVideo(QtCore.QObject):
 
     camera = cv2.VideoCapture(0)
 
-    ret, image = camera.read()
+    #ret, image = camera.read()
     height, width = image.shape[:2]
 
     VideoSignal1 = QtCore.pyqtSignal(QtGui.QImage)
