@@ -16,7 +16,7 @@ from std_msgs.msg import Int64MultiArray
 class Rasp_Cam_Subscriber():
     def __init__(self):
 
-        self.selecting_sub_image = "compressed" # 토픽선택 compressed or raw
+        self.selecting_sub_image = "raw" # 토픽선택 compressed or raw
 
         if self.selecting_sub_image == "compressed":
             self._sub = rospy.Subscriber('/usb_cam/image_raw/compressed', CompressedImage, self.callback, queue_size=1)
@@ -56,8 +56,8 @@ class Rasp_Cam_Subscriber():
             my_msg.data = [x,y,w,h]
             pub.publish(my_msg)
         
-        width = 480
-        height = 640
+        width = 240#480
+        height = 320#640
         label.resize(width, height)
         
         img = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB) 

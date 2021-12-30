@@ -10,7 +10,7 @@ from std_msgs.msg import Int64MultiArray
 class Rasp_Cam_Subscriber():
     def __init__(self):
         
-        self.selecting_sub_image = "compressed" # 토픽선택 compressed or raw
+        self.selecting_sub_image = "raw" # 토픽선택 compressed or raw
  
         if self.selecting_sub_image == "compressed":
             self._sub = rospy.Subscriber('/usb_cam/image_raw/compressed', CompressedImage, self.callback, queue_size=1)
