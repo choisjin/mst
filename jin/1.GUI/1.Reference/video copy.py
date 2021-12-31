@@ -16,12 +16,12 @@ from std_msgs.msg import Int64MultiArray
 class Rasp_Cam_Subscriber():
     def __init__(self):
 
-        self.selecting_sub_image = "compressed" # 토픽선택 compressed or raw
+        self.selecting_sub_image = "raw" # 토픽선택 compressed or raw
 
         if self.selecting_sub_image == "compressed":
             self._sub = rospy.Subscriber('/usb_cam/image_raw/compressed', CompressedImage, self.callback, queue_size=1)
         else:
-            self._sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.callback, queue_size=1)
+            self._sub = rospy.Subscriber('/camera1/usb_cam1/image_raw', Image, self.callback, queue_size=1)
 
             self.bridge = CvBridge()
 
@@ -51,8 +51,8 @@ class Rasp_Cam_Subscriber():
             my_msg.data = [x,y,w,h]
             pub.publish(my_msg)
         
-        width = 480
-        height = 640
+        width = 640
+        height = 480
         label.resize(width, height)
         
         img = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB) 
