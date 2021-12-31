@@ -31,6 +31,7 @@ faceCascade = cv2.CascadeClassifier('/home/jin/mst/jin/2.Tracking_Cam/2.Src/Data
 cap = cv2.VideoCapture(0)
 cap.set(3,640) # set Width
 cap.set(4,480) # set Height
+print(cap)
 while True:
     ret, img = cap.read()
     #img = cv2.flip(img, 0) # 좌우반전

@@ -1,6 +1,6 @@
 #-*- coding:utf-8 -*-
 import rospy
-from std_msgs.msg import Int64MultiArray
+from std_msgs.msg import UInt8MultiArray
 import Adafruit_PCA9685 
 
 pwm = Adafruit_PCA9685.PCA9685() 
@@ -22,7 +22,7 @@ def set_servo_pulse(channel, pulse):
 
 class Servo_Subscriber():
     def __init__(self):
-        self._sub_x = rospy.Subscriber('/servo_x3', Int64MultiArray, self.callback, queue_size=1) # 객체인식 바운딩박스 x,y,w,h 토픽
+        self._sub_x = rospy.Subscriber('/servo_x3', UInt8MultiArray, self.callback, queue_size=1) # 객체인식 바운딩박스 x,y,w,h 토픽
         self.servo_x = 320   # servo_x defalt position
         self.servo_y = 390
         pwm.set_pwm(1, 0, self.servo_x)
