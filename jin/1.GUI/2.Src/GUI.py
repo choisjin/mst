@@ -1,10 +1,13 @@
 #-*- coding:utf-8 -*-
+
+# GUI관련 모듈
 import sys
-from PyQt5.QtWidgets import QDialog, QApplication, QWidget, QDesktopWidget
+from PyQt5.QtWidgets import QDialog, QWidget, QDesktopWidget
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
-from PyQt5 import QtCore
+from PyQt5.QtCore import Qt
 
+# Topic통신 관련 모듈
 import rospy
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
@@ -17,6 +20,11 @@ class MianWindow(QWidget):
         self.initUI()
         
     def initUI(self):
+        self.setWindowTitle('Main')
+        self.setWindowFlags(Qt.WindowStaysOnTopHint)
+        width = 200
+        height = 100
+        self.setFixedSize(width, height)
         vbox = QtWidgets.QVBoxLayout()
     
         btn_camera1 = QtWidgets.QPushButton("Camera 1")
@@ -27,7 +35,7 @@ class MianWindow(QWidget):
 
         btn_camera1.clicked.connect(self.openCameraViewer1)
         btn_camera2.clicked.connect(self.openCameraViewer2)
-        self.center()
+        self.move(600, 400)
         self.setLayout(vbox)
         self.show()
 
@@ -36,27 +44,28 @@ class MianWindow(QWidget):
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
+        
     # 카메라 선택
     def openCameraViewer1(self):
-        self.close()    
-        rospy.init_node('Face_Tracking', anonymous=True)
         cam_num = 1
-        self.second = Cam1(cam_num)
-        self.second.exec_()
-        self.show()                
+        
+        #self.close()    
+        rospy.init_node('Face_Tracking', anonymous=True)
+        self.second = Tracking_Camera(cam_num)
+        self.second.exec_()               
  
     def openCameraViewer2(self):
-        self.close()    
-        rospy.init_node('Face_Tracking', anonymous=True)
         cam_num = 2
-        self.second = Cam1(cam_num)
-        self.second.exec_()
-        self.show()                
-
-class Cam1(QDialog, QWidget):
-    def __init__(self, camera):
-        super(Cam1, self).__init__()
         
+        #self.close()    
+        rospy.init_node('Face_Tracking', anonymous=True)
+        self.second = Tracking_Camera(cam_num)
+        self.second.exec_()             
+
+class Tracking_Camera(QDialog, QWidget):
+    def __init__(self, camera):
+        super(Tracking_Camera, self).__init__()
+        self.setWindowTitle('Camera%d' % camera)
         self.camera=camera
         if camera == 1 :
             self._sub = rospy.Subscriber('/camera1/usb_cam1/image_raw', Image, self.callback, queue_size=10)
@@ -107,6 +116,7 @@ class Cam1(QDialog, QWidget):
         if self.camera == 1:
             width = 640
             height = 480
+        
         elif self.camera == 2:
             width = 320
             height = 240
@@ -117,7 +127,7 @@ class Cam1(QDialog, QWidget):
         qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
         pixmap = QtGui.QPixmap.fromImage(qImg)
         self.label.setPixmap(pixmap)
-
+        
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     init = MianWindow()
