@@ -65,7 +65,10 @@ class MianWindow(QWidget):
 class Tracking_Camera(QDialog, QWidget):
     def __init__(self, camera):
         super(Tracking_Camera, self).__init__()
+        
         self.setWindowTitle('Camera%d' % camera)
+        self.setWindowFlags(Qt.WindowStaysOnTopHint)
+
         self.camera=camera
         if camera == 1 :
             self._sub = rospy.Subscriber('/camera1/usb_cam1/image_raw', Image, self.callback, queue_size=10)
@@ -74,15 +77,14 @@ class Tracking_Camera(QDialog, QWidget):
             self._sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.callback, queue_size=10)
         
         self.bridge = CvBridge()
-        
+         
         vbox = QtWidgets.QVBoxLayout()
         self.label = QtWidgets.QLabel()
-
-        vbox.addWidget(self.label)
-
         self.setLayout(vbox)
         
         vbox.addWidget(self.label)
+        vbox.addWidget(self.label)
+        
         self.center()
         self.show()    
 
