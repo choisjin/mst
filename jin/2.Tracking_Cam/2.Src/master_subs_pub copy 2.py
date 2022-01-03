@@ -55,8 +55,7 @@ class Rasp_Cam1_Subscriber():
         qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
         pixmap = QtGui.QPixmap.fromImage(qImg)
         label.setPixmap(pixmap)
-        print(label)
-        print(type(label))
+
         #이미지 출력
         # cv2.imshow('Camera%d' % self.camera, cv_image)
         # k = cv2.waitKey(1) & 0xff
