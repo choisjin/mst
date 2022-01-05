@@ -18,27 +18,32 @@ class LoginForm(QtWidgets.QWidget):
         super(LoginForm, self).__init__()
         self.setWindowTitle('Login Window')
         width = 200
-        height = 100
+        height = 150
         self.setFixedSize(width, height)
         
         layout = QtWidgets.QGridLayout()
-        
+
+        logo_label = QtWidgets.QLabel(self)
+        logo_label.move(70, 7)
+        pixmap = QtGui.QPixmap('/home/jin/mst/jin/1.GUI/2.Src/PyQt5_Tutorial/Data/mst.png')
+        logo_label.setPixmap(pixmap)
+
         label_name = QtWidgets.QLabel('<font size="2"> ID </font>')
         self.lineEdit_username = QtWidgets.QLineEdit()
         self.lineEdit_username.setPlaceholderText('Enter your ID')
-        layout.addWidget(label_name, 0, 0)
-        layout.addWidget(self.lineEdit_username, 0, 1)
+        layout.addWidget(label_name, 3, 0)
+        layout.addWidget(self.lineEdit_username, 3, 1)
         
         label_password = QtWidgets.QLabel('<font size="2"> PW </font>')
         self.lineEdit_password = QtWidgets.QLineEdit()
         self.lineEdit_password.setEchoMode(QtWidgets.QLineEdit.Password)
         self.lineEdit_password.setPlaceholderText('Enter your pw')
-        layout.addWidget(label_password, 1, 0)
-        layout.addWidget(self.lineEdit_password, 1, 1)
+        layout.addWidget(label_password, 4, 0)
+        layout.addWidget(self.lineEdit_password, 4, 1)
         
         button_login = QtWidgets.QPushButton('Login')
         button_login.clicked.connect(self.check_password)
-        layout.addWidget(button_login, 2, 0, 1, 2)
+        layout.addWidget(button_login, 5, 0, 1, 2)
         layout.setRowMinimumHeight(2, 30)
         
         self.setLayout(layout)
@@ -76,18 +81,23 @@ class MainWindow(QtWidgets.QWidget):
         height = 100
         self.setFixedSize(width, height)
         vbox = QtWidgets.QVBoxLayout()
-    
-        btn_camera1 = QtWidgets.QPushButton("Camera 1")
-        btn_camera2 = QtWidgets.QPushButton("Camera 2")
-        # btn_camera3 = QtWidgets.QPushButton("Logout")
+        cb = QtWidgets.QComboBox(self)
+        cb.resize(180, 30)
+        cb.move(10,10)
+        #cb.addItem("카메라를 선택해 주세요.")
+        cb.addItem('Camera1')        
+        cb.addItem('Camera2')
+        
+        cb.activated[str].connect(self.openCameraViewer)
+        print(cb.activated[str])
+        #btn_camera1 = QtWidgets.QPushButton("Camera 1")
+        #btn_camera2 = QtWidgets.QPushButton("Camera 2")
 
-        vbox.addWidget(btn_camera1)
-        vbox.addWidget(btn_camera2)
-        # vbox.addWidget(btn_camera3)
+        #vbox.addWidget(btn_camera1)
+        #vbox.addWidget(btn_camera2)
 
-        btn_camera1.clicked.connect(self.openCameraViewer1)
-        btn_camera2.clicked.connect(self.openCameraViewer2)
-        # btn_camera3.clicked.connect(self.Logout)
+        #btn_camera1.clicked.connect(self.openCameraViewer1)
+        #btn_camera2.clicked.connect(self.openCameraViewer2)
         self.center()
         self.setLayout(vbox)
         self.show()
@@ -98,29 +108,18 @@ class MainWindow(QtWidgets.QWidget):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
     
-    # def Logout(self):
-        # self.close()
-        # self.logout = LoginForm()
-        # self.logout.exec_()
-    
     # 카메라 선택
-    def openCameraViewer1(self):
-        cam_num = 1
-        
-        #self.close()    
-        rospy.init_node('Face_Tracking', anonymous=True)
-        self.second = Tracking_Camera(cam_num)
-        self.second.exec_()               
- 
-    def openCameraViewer2(self):
-        cam_num = 2
-        
-        #self.close()    
-        rospy.init_node('Face_Tracking', anonymous=True)
-        self.second = Tracking_Camera(cam_num)
-        self.second.exec_()             
+    def openCameraViewer(self, cam_num):
+        if cam_num == 'Camera1':
+            cam_num = 1
+        elif cam_num == 'Camera2':
+            cam_num = 2
 
-class Tracking_Camera(QtWidgets.QDialog, QtWidgets.QWidget):
+        rospy.init_node('Face_Tracking', anonymous=True)
+        self.second = Tracking_Camera(cam_num)
+        self.second.exec_()                       
+
+class Tracking_Camera(QtWidgets.QDialog):
     def __init__(self, camera):
         super(Tracking_Camera, self).__init__()
         
@@ -140,7 +139,6 @@ class Tracking_Camera(QtWidgets.QDialog, QtWidgets.QWidget):
         self.label = QtWidgets.QLabel()
         self.setLayout(vbox)
         
-        vbox.addWidget(self.label)
         vbox.addWidget(self.label)
         
         self.center()
