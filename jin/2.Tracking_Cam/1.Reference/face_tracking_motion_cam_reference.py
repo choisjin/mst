@@ -27,8 +27,8 @@ import Adafruit_PCA9685 # adafruit pca9685모듈 라이브러리 설치는 https
 #pwm.set_pwm_freq(60)
 
 # Cascades 디렉토리의 haarcascade_frontalface_default.xml 파일을 Classifier로 사용
-faceCascade = cv2.CascadeClassifier('/home/jin/mst/jin/2.Tracking_Cam/2.Src/Data/haarcascade_frontalface_default.xml')
-cap = cv2.VideoCapture(0)
+faceCascade = cv2.CascadeClassifier('jin/2.Tracking_Cam/2.Src/Data/haarcascade_frontalface_default.xml')
+cap = cv2.VideoCapture('jin/2.Tracking_Cam/2.Src/Data/sample.mp4')
 cap.set(3,640) # set Width
 cap.set(4,480) # set Height
 print(cap)
