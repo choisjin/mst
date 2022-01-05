@@ -5,10 +5,13 @@ import sys
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt
+from time import sleep
+import threading
 
 # Topic통신 관련 모듈
 import rospy
 import cv2
+import numpy
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from std_msgs.msg import UInt16MultiArray
@@ -122,6 +125,7 @@ class MainWindow(QtWidgets.QWidget):
         
         self.train = 0
         self.video = 0
+        self.cam_num = 0
         self.center()       # MainWindow 창 화면 중앙에 위치
         self.show()         # MainWindow 창 띄움
 
@@ -152,130 +156,158 @@ class MainWindow(QtWidgets.QWidget):
         elif cam_num == 'Camera2':
             self.cam_num = 2
 
-        elif cam_num == 'Select Camera.':
-            self.cam_num = 0
-
     def Start_btn(self):    
         if self.cam_num == 1 and self.train == 1:
             rospy.init_node('Face_Tracking', anonymous=True)
             self.second = Tracking_Camera(self.cam_num)
             self.filePath.clear()
             self.train = 0
-            #self.second.exec_()
             print('cam1 & train')
+            #self.second.exec_()
+            
         
         elif self.cam_num == 2 and self.train == 1:
             rospy.init_node('Face_Tracking', anonymous=True)
             self.second = Tracking_Camera(self.cam_num)
             self.filePath.clear()
             self.train = 0
+            print('cam2 & train')
             #self.second.exec_()
-            print('cam2 & train')        
-        
-        elif self.cam_num == 0 and self.train == 1 and self.video == 1:
+                    
+
+        elif self.cam_num == 1:
             rospy.init_node('Face_Tracking', anonymous=True)
-            self.second = Tracking_Video()
-            self.videoPath.clear()
-            self.video = 0
+            self.second = Normal_Camera(self.cam_num)
+            self.cam_num = 0
+            print('cam1 & normal')
             #self.second.exec_()
-            print('Train & video')        
-        
-        elif self.cam_num == 0 and self.train == 0 and self.video == 1:
+
+        elif self.cam_num == 2:
             rospy.init_node('Face_Tracking', anonymous=True)
-            self.second = Tracking_Video()
-            self.videoPath.clear()
-            self.video = 0            
-            #self.second.exec_()                    
-            print('Train & video')
-        
+            self.second = Normal_Camera(self.cam_num)
+            self.cam_num = 0
+            print('cam2 & normal')   
+            #self.second.exec_()
+
         else:
-            if self.cam_num == 1:
-                rospy.init_node('Face_Tracking', anonymous=True)
-                self.second = Normal_Camera(self.cam_num)
-                print('cam1 & normal')
+            if self.train == 1 and self.video == 1:
+                self.second = Tracking_Video()
+                self.filePath.clear()
+                self.videoPath.clear()
+                self.train = 0
+                self.video = 0
+                print('Train & video')
                 #self.second.exec_()
 
-            elif self.cam_num == 2:
-                rospy.init_node('Face_Tracking', anonymous=True)
-                self.second = Normal_Camera(self.cam_num)
-                #self.second.exec_()
-                print('cam2 & normal')
-
-    # 뷰어 선택
-    def NormalCameraViewer(self):
-        if self.cam_num == 1:
-            cam_num = 1
-
-        elif self.cam_num == 2:
-            cam_num = 2
-        
-        rospy.init_node('Face_Tracking', anonymous=True)
-        self.second = Normal_Camera(cam_num)
-        #self.second.exec_()
-
-    def openCameraViewer(self):
-        if self.cam_num == 1:
-            cam_num = 1
-
-        elif self.cam_num == 2:
-            cam_num = 2
-
-        rospy.init_node('Face_Tracking', anonymous=True)
-        self.second = Tracking_Camera(cam_num)
-        #self.second.exec_()
-
-    def NormalVideoViewer(self):
-        self.second = Normal_Video()
-        #self.second.exec_()
-
-    def VideoViewer(self):
-        self.second = Tracking_Video()
-        #self.second.exec_()
+            elif self.train == 0 and self.video == 1:
+                self.second = Normal_Video()
+                self.videoPath.clear()
+                self.video = 0            
+                print('video only')
+                #self.second.exec_()                    
 
 class Normal_Video(QtWidgets.QDialog):
     def __init__(self):
-        super(Normal_Video, self).__init__()
-        global path
+        super(Normal_Video, self).__init__() 
+        
+        self.setWindowTitle('Video_Viewer')
+        self.setWindowFlags(Qt.WindowStaysOnTopHint)
+        
+        vbox = QtWidgets.QVBoxLayout()
+        self.label = QtWidgets.QLabel()
+        self.setLayout(vbox)
+
+        vbox.addWidget(self.label)        
+        
+        self.center()
+        self.show() 
+        
+    def center(self):
+            qr = self.frameGeometry()
+            cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+            qr.moveCenter(cp)
+            self.move(qr.topLeft())
+        
+    def Video_Viewer(self):    
+        #global path
+        print(path[0])
         cap = cv2.VideoCapture(path[0])
         cap.set(3,640) # set Width
         cap.set(4,480) # set Height
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        sleep_ms = int(numpy.round((1 / fps) * 500))
 
         while True:
-            ret, img = cap.read()
-            cv2.imshow('video', img)
-            k = cv2.waitKey(1) & 0xff
-            if k == 27:
+            self.ret, self.frame = cap.read()
+            
+            # self.label.resize(640, 480)
+            img = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB) 
+            h,w,c = img.shape
+            qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
+            pixmap = QtGui.QPixmap.fromImage(qImg)
+            self.label.setPixmap(pixmap)
+
+            if(cv2.waitKey(sleep_ms) == ord('q')):
                 break
         cap.release()
         cv2.destroyAllWindows()
 
-class Tracking_Video():
+
+
+class Tracking_Video(QtWidgets.QDialog):
     def __init__(self):
-        super(Tracking_Video).__init__()
+        super(Tracking_Video, self).__init__()
+        
+        self.setWindowTitle('Tracking_Video_Viewer')
+        self.setWindowFlags(Qt.WindowStaysOnTopHint)
+        
+        vbox = QtWidgets.QVBoxLayout()
+        self.label = QtWidgets.QLabel()
+        self.setLayout(vbox)
+        
+        vbox.addWidget(self.label)        
+        
+        self.center()
+        self.show() 
+    
+    def center(self):
+        qr = self.frameGeometry()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
+
+    def videoviewer(self):    
         global path
-        cap = cv2.VideoCapture(path[0])
+        cap = cv2.VideoCapture('/home/jin/mst/jin/2.Tracking_Cam/2.Src/Data/haarcascade_frontalface_default.xml')
         cap.set(3,640) # set Width
         cap.set(4,480) # set Height
-    
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        sleep_ms = int(numpy.round((1 / fps) * 500))
+        
         global path1
         faceCascade = cv2.CascadeClassifier(path1[0])
+        self.label.resize(640, 480)        
         while True:
-            ret, img = cap.read()
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            ret, frame = cap.read()
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             faces = faceCascade.detectMultiScale(gray, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))    
         
             for (x,y,w,h) in faces:
-                cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
+                cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),1)      
                 roi_gray = gray[y:y+h, x:x+w]
-                roi_color = img[y:y+h, x:x+w]   
+                roi_color = img[y:y+h, x:x+w]         
             
-            cv2.imshow('video', img)
-            k = cv2.waitKey(1) & 0xff
-            if k == 27:
+
+            img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) 
+            h,w,c = img.shape
+            qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
+            pixmap = QtGui.QPixmap.fromImage(qImg)
+            self.label.setPixmap(pixmap)
+
+            if(cv2.waitKey(sleep_ms) == ord('q')):
                 break
         cap.release()
-        cv2.destroyAllWindows()
-    
+        
 class Normal_Camera(QtWidgets.QDialog):
     def __init__(self, camera):
         super(Normal_Camera, self).__init__()
