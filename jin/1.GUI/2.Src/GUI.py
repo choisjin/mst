@@ -12,12 +12,13 @@ import rospy
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
-from std_msgs.msg import UInt8MultiArray
+from std_msgs.msg import UInt16MultiArray
 
 class MianWindow(QWidget):
     def __init__(self):
         super(MianWindow, self).__init__()
         self.initUI()
+        
         
     def initUI(self):
         self.setWindowTitle('Main')
@@ -109,11 +110,11 @@ class Tracking_Camera(QDialog, QWidget):
             cv2.rectangle(cv_image,(x,y),(x+w,y+h),(0,255,0),1)
             cv2.rectangle(gray,(x,y),(x+w,y+h),(0,255,0),1)
 
-            pub = rospy.Publisher('servo_x3', UInt8MultiArray, queue_size=10)
-            my_msg = UInt8MultiArray()
+            pub = rospy.Publisher('servo_x3', UInt16MultiArray, queue_size=1)
+            my_msg = UInt16MultiArray()
             my_msg.data = [x,y,w,h]
             pub.publish(my_msg)
-
+            print(my_msg)
         #이미지 출력
         if self.camera == 1:
             width = 640

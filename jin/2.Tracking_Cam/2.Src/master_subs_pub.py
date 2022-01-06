@@ -15,7 +15,7 @@ class Rasp_Cam_Subscriber():
         if self.selecting_sub_image == "compressed":
             self._sub = rospy.Subscriber('/usb_cam/image_raw/compressed', CompressedImage, self.callback, queue_size=1)
         else:
-            self._sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.callback, queue_size=10)
+            self._sub = rospy.Subscriber('/webcam_image', Image, self.callback, queue_size=10)
  
             self.bridge = CvBridge()
 

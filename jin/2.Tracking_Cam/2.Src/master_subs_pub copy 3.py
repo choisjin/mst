@@ -40,7 +40,7 @@ class Rasp_Cam1_Subscriber():
             my_msg = UInt8MultiArray()
             my_msg.data = [x,y,w,h]
             pub.publish(my_msg)
-
+            print(my_msg)
         #이미지 출력
         if self.camera == 1:
             width = 640
