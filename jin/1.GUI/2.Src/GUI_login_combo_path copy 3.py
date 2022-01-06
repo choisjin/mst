@@ -208,53 +208,118 @@ class MainWindow(QtWidgets.QWidget):
                 print('video only')
                 #self.second.exec_()                    
 
-class Normal_Video(QtWidgets.QDialog, QtWidgets.QWidget):
+class Normal_Video(QtWidgets.QDialog):
     def __init__(self):
         super(Normal_Video, self).__init__()
-        cap = cv2.VideoCapture(path[0])
-        cap.set(3,640) # set Width
-        cap.set(4,480) # set Height
-        fps = cap.get(cv2.CAP_PROP_FPS)
-        sleep_ms = int(numpy.round((1 / fps) * 500))
-
-        while True:
-            ret, img = cap.read()
-            cv2.imshow('video', img)
-            if(cv2.waitKey(sleep_ms) == ord('q')):
-                break
+        app = QtWidgets.QApplication([])
+        win = QtWidgets.QWidget()
+        vbox = QtWidgets.QVBoxLayout()
+        self.label = QtWidgets.QLabel()
+        btn_start = QtWidgets.QPushButton("Camera On")
+        btn_stop = QtWidgets.QPushButton("Camera Off")
         
+        vbox.addWidget(self.label)
+        vbox.addWidget(btn_start)
+        vbox.addWidget(btn_stop)
+        win.setLayout(vbox)
+        
+
+        btn_start.clicked.connect(self.start)
+        btn_stop.clicked.connect(self.stop)
+        app.aboutToQuit.connect(self.onExit)        
+        win.show()
+    def run(self):
+        running = False
+        
+        cap = cv2.VideoCapture(path[0])
+        width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        self.label.resize(width, height)
+        while running:
+            ret, img = cap.read()
+            if ret:
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) 
+                h,w,c = img.shape
+                qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
+                pixmap = QtGui.QPixmap.fromImage(qImg)
+                self.label.setPixmap(pixmap)
+            else:
+                print("cannot read frame.")
+                break
         cap.release()
-        cv2.destroyAllWindows()
+        print("Thread end.")
+
+    def stop(self):
+        global running
+        running = False
+        print("stoped..")
+
+    def start(self):
+        global running
+        running = True
+        th = threading.Thread(target=self.run)
+        th.start()
+        print("started..")
+
+    def onExit(self):
+        print("exit")
+        self.stop()
+
+
 
 class Tracking_Video(QtWidgets.QDialog):
     def __init__(self):
         super(Tracking_Video, self).__init__()
         
-        cap = cv2.VideoCapture(path[0])
-        cap.set(3,640) # set Width
-        cap.set(4,480) # set Height
-        fps = cap.get(cv2.CAP_PROP_FPS)
-        sleep_ms = int(numpy.round((1 / fps) * 500))
+        self.setWindowTitle('Tracking_Video_Viewer')
+        self.setWindowFlags(Qt.WindowStaysOnTopHint)
+
+        vbox = QtWidgets.QVBoxLayout()
         
+        self.label = QtWidgets.QLabel()
+        self.setLayout(vbox)
         
+        vbox.addWidget(self.label)
+        
+        self.center()
+        self.show()
+        self.video()
+
+    def center(self):
+        qr = self.frameGeometry()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topRight())
+
+    def video(self):
+        self.cap = cv2.VideoCapture(path[0])
+        self.cap.set(3,640) # set Width
+        self.cap.set(4,480) # set Height
+        self.video_speed = 0.01
         faceCascade = cv2.CascadeClassifier(path1[0])
-    
+
         while True:
-            ret, img = cap.read()
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            faces = faceCascade.detectMultiScale(gray, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60)) 
+            ret, frame = self.cap.read()
+            faces = faceCascade.detectMultiScale(frame, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
             
-            for (x,y,w,h) in faces:
-                cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)      
-                roi_gray = gray[y:y+h, x:x+w]
-                roi_color = img[y:y+h, x:x+w]                
-            
-            cv2.imshow('video', img)
-            if(cv2.waitKey(sleep_ms) == ord('q')):
-                break
+            if ret:
+                for (x,y,w,h) in faces:
+                    cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),1)      
+                
+                self.label.resize(640, 480)            
+                img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                h,w,c = img.shape
+                qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
+                pixmap = QtGui.QPixmap.fromImage(qImg)
+                self.label.setPixmap(pixmap)
+
+                sleep(self.video_speed) # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
+                if cv2.waitKey(0) == ord('q'):               
+                    break  
         
-        cap.release()
+        self.cap.release()
         cv2.destroyAllWindows()
+
         
 class Normal_Camera(QtWidgets.QDialog):
     def __init__(self, camera):
