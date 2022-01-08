@@ -13,8 +13,8 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import UInt16MultiArray
 
 
-class LoginForm(QtWidgets.QDialog):         # 로그인 화면
-    def __init__(self):                     # 로그인 화면 셋팅
+class LoginForm(QtWidgets.QDialog):
+    def __init__(self):
         super(LoginForm, self).__init__()
         self.setWindowFlag(Qt.FramelessWindowHint)
 
@@ -22,7 +22,7 @@ class LoginForm(QtWidgets.QDialog):         # 로그인 화면
         
         width = 255
         height = 110
-        
+        #self.setGeometry(1000, 500, width, height)
         self.setFixedSize(width, height)
 
         logo_label = QtWidgets.QLabel(self)
@@ -61,9 +61,7 @@ class LoginForm(QtWidgets.QDialog):         # 로그인 화면
         self.button_exit.move(95, 75)
 
         self.center()
-        global Position
-        Position = self.qr.topLeft()
-
+    
     def check_password(self):
         msg = QtWidgets.QMessageBox()
 
@@ -75,10 +73,10 @@ class LoginForm(QtWidgets.QDialog):         # 로그인 화면
             msg.exec_()
             
     def center(self):
-        self.qr = self.frameGeometry()
-        self.cp = QtWidgets.QDesktopWidget().availableGeometry().center()
-        self.qr.moveCenter(self.cp)
-        self.move(self.qr.topLeft())    
+        qr = self.frameGeometry()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())    
 
     def keyPressEvent(self, e):
         if e.key() in [Qt.Key_Return, Qt.Key_Enter]:
@@ -94,47 +92,16 @@ class MainWindow(QtWidgets.QMainWindow):
         
     def initUI(self):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
-        global Main_width
-        global Main_height
-        Main_width = 175
-        Main_height = 160
-        self.setFixedSize(Main_width, Main_height)
-        self.setGeometry(Position.x(), Position.y(), Main_width, Main_height)
-        self.setToolBar()      
+        width = 175
+        height = 160
+        self.setFixedSize(width, height)
         
-        Path_width = 165
-        Path_height = 30
-        
-    # Train파일 경로 출력
-        self.filePath = QtWidgets.QLineEdit(self)
-        self.filePath.resize(Path_width, Path_height)
-        self.filePath.setPlaceholderText('Train file name...')
-        self.filePath.move(5, 75)
-
-    # Video파일 경로 출력
-        self.videoPath = QtWidgets.QLineEdit(self)
-        self.videoPath.resize(Path_width, Path_height)
-        self.videoPath.setPlaceholderText('Video file name...')
-        self.videoPath.move(5, 110)
-
-    # 카메라선택 ComboBox
-        self.cb = QtWidgets.QComboBox(self)
-        self.cb.resize(Path_width, Path_height)
-        self.cb.move(5, 40)
-        self.DataReset()
-        self.ComboBoxInit()
-        self.cb.activated[str].connect(self.Select_Cam)
-
-        self.show()                                 # MainWindow 창 띄움
-
-    def setToolBar(self):                           # 툴바 셋팅
-        exitAction = QtWidgets.QAction(
-            QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/PyQt5_Tutorial/Data/exit.png'),
-             'Exit', self)                          # 툴바 아이콘 이미지 삽입
-        exitAction.setShortcut('Ctrl+Q')            # 툴바 단축키 설정
-        exitAction.setStatusTip('Exit')             # 상태창 메세지
-        exitAction.setToolTip('Ctrl+Q')             # 툴팁 메세지
-        exitAction.triggered.connect(self.close)    # 툴바 클릭시 발생 이벤트
+        # Toolbar
+        exitAction = QtWidgets.QAction(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/PyQt5_Tutorial/Data/exit.png'), 'Exit', self)
+        exitAction.setShortcut('Ctrl+Q')
+        exitAction.setStatusTip('Exit')
+        exitAction.setToolTip('Ctrl+Q')
+        exitAction.triggered.connect(self.close)
 
         logoutAction = QtWidgets.QAction(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/PyQt5_Tutorial/Data/exit.png'), 'Logout', self)
         logoutAction.setShortcut('Ctrl+L')
@@ -168,23 +135,54 @@ class MainWindow(QtWidgets.QMainWindow):
         self.toolbar.addAction(trainAction)
         self.toolbar.addAction(videoAction)
         self.toolbar.addAction(logoutAction)
-        self.toolbar.addAction(exitAction)
+        self.toolbar.addAction(exitAction)      
+        
+        width = 165
+        height = 30
+        
+        # Train파일 경로 출력
+        self.filePath = QtWidgets.QLineEdit(self)
+        self.filePath.resize(width, height)
+        self.filePath.setPlaceholderText('Train file name...')
+        self.filePath.move(5, 75)
 
-    def DataReset(self):                            # 입력 데이터 초기화
-        self.cam_num = 0                            # Camera 선택 초기화
-        self.train = 0                              # Train 선택 초기화
-        self.filePath.clear()                       # Train 파일 경로 초기화
-        self.video = 0                              # Video 선택 초기화
-        self.videoPath.clear()                      # Video 파일 경로 초기화
+        # Video파일 경로 출력
+        self.videoPath = QtWidgets.QLineEdit(self)
+        self.videoPath.resize(width, height)
+        self.videoPath.setPlaceholderText('Video file name...')
+        self.videoPath.move(5, 110)
 
-    def ComboBoxInit(self):                         # ComboBox 초기화
-        self.cb.clear()                             # ComboBox 모두 지우기
-        combo_num = 2                               # ComboBox 생성 갯수
-        combo_init = 0                              
-        self.cb.addItem('Select Camera...')         # Default Item 생성
-        while combo_init < combo_num :              # ComboBox 생성
+        # 카메라선택 ComboBox
+        self.cb = QtWidgets.QComboBox(self)
+        self.cb.resize(width, height)
+        self.cb.move(5, 40)
+        self.DataReset()
+        self.cb.activated[str].connect(self.Select_Cam)
+
+        self.center()       # MainWindow 창 화면 중앙에 위치
+        self.show()         # MainWindow 창 띄움
+
+    def DataReset(self):     
+        self.filePath.clear()
+        self.videoPath.clear()
+        self.cam_num = 0
+        self.train = 0
+        self.video = 0         
+        
+        self.cb.clear()
+        combo_num = 2
+        combo_init = 0
+        self.cb.addItem('Select Camera...')
+        while combo_init < combo_num :
             combo_init += 1
             self.cb.addItem('Camera%d' % combo_init) 
+        
+    # 화면 중앙에 창 띄우는 함수
+    def center(self):
+        qr = self.frameGeometry()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
     def Insert_Train(self):
         global path1
@@ -203,8 +201,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.video = 0
         else:
             self.video = 1
-            self.cam_num = 0
-            self.ComboBoxInit()
     
     def Logout(self):
         self.logout = LoginForm()
@@ -217,10 +213,8 @@ class MainWindow(QtWidgets.QMainWindow):
             
     def Select_Cam(self, cam_num):
         if cam_num == 'Camera1':
-            self.videoPath.clear()
             self.cam_num = 1
         elif cam_num == 'Camera2':
-            self.videoPath.clear()
             self.cam_num = 2
         elif cam_num == 'Select Camera...':
             self.DataReset()
@@ -229,34 +223,34 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.cam_num == 1 and self.train == 1:
             rospy.init_node('Face_Tracking', anonymous=True)
             self.second = Tracking_Camera(self.cam_num)
-            self.DataReset()
-            self.ComboBoxInit()
+            self.DataReset() 
             print('cam1 & train')
+            #self.second.exec_()
         elif self.cam_num == 2 and self.train == 1:
             rospy.init_node('Face_Tracking', anonymous=True)
             self.second = Tracking_Camera(self.cam_num)
-            self.DataReset()
-            self.ComboBoxInit()
+            self.DataReset()   
             print('cam2 & train')
+            #self.second.exec_()
         elif self.cam_num == 1:
             rospy.init_node('Face_Tracking', anonymous=True)
             self.second = Normal_Camera(self.cam_num)
             self.control = Camera_Control()
-            self.DataReset()
-            self.ComboBoxInit()
+            self.DataReset()   
             print('cam1 & normal')
+            #self.second.exec_()
         elif self.cam_num == 2:
             rospy.init_node('Face_Tracking', anonymous=True)
             self.second = Normal_Camera(self.cam_num)
             self.DataReset()
-            self.ComboBoxInit()
             print('cam2 & normal')   
+            #self.second.exec_()
         else:
             if self.train == 1 and self.video == 1:
                 self.second = Tracking_Video()
                 self.DataReset()
-                self.ComboBoxInit()
                 print('Train & video')
+            
             elif self.train == 0 and self.video == 1:
                 self.second = Normal_Video()
                 self.DataReset()
@@ -333,6 +327,7 @@ class Normal_Video(QtWidgets.QDialog):
         if e.key() == Qt.Key_Escape:
             self.cap.release()
 
+
 class Tracking_Video(QtWidgets.QDialog):
     def __init__(self):
         super(Tracking_Video, self).__init__()
@@ -395,18 +390,19 @@ class Tracking_Video(QtWidgets.QDialog):
         if e.key() == Qt.Key_Escape:
             self.cap.release()
 
+
 class Camera_Control(QtWidgets.QDialog):
     def __init__(self):
         super(Camera_Control, self).__init__()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         
+        width = 225
         height = 90
-        self.setFixedSize(Main_width, height)
-        self.setGeometry(Position.x(), Position.y()+Main_height+10, Main_width, height)
+        self.setFixedSize(width, height)
 
         self.button_REC = QtWidgets.QPushButton('REC', self)
         self.button_REC.resize(65,30)
-        self.button_REC.move(5, 5)
+        self.button_REC.move(10,10)
         self.button_REC.clicked.connect(self.ChangeREC)
         
         self.button_Auto = QtWidgets.QPushButton('Auto', self)
@@ -464,7 +460,8 @@ class Normal_Camera(QtWidgets.QDialog):
     def __init__(self, camera):
         super(Normal_Camera, self).__init__()
         
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setWindowTitle('Camera%d' % camera)
+        self.setWindowFlags(Qt.WindowStaysOnTopHint)
         
         self.camera=camera  
         
@@ -475,15 +472,21 @@ class Normal_Camera(QtWidgets.QDialog):
         
         self.bridge = CvBridge()
                  
-        Normal_cam_width = 640
-        Normal_cam_height = 480
-        self.setFixedSize(Normal_cam_width, Normal_cam_height)
-        self.setGeometry(Position.x()+Main_width+10, Position.y(), Normal_cam_width, Normal_cam_height)
+        window_width = 640
+        window_height = 480
+        self.setFixedSize(window_width, window_height)
         
         self.label = QtWidgets.QLabel(self)
         self.label.move(0,0)
          
+        self.center()
         self.show()    
+
+    def center(self):
+        qr = self.frameGeometry()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topRight())
 
     def callback(self, data):  
         try:
@@ -518,7 +521,7 @@ class Normal_Camera(QtWidgets.QDialog):
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             self.cv_image = False
-            self.close()
+            self.close()                            
 
 class Tracking_Camera(QtWidgets.QDialog):
     def __init__(self, camera):
@@ -543,6 +546,9 @@ class Tracking_Camera(QtWidgets.QDialog):
         
         self.center()
         self.show()    
+    
+    # def __del__(self):
+    #     print('node quit...')
     
     def center(self):
         qr = self.frameGeometry()

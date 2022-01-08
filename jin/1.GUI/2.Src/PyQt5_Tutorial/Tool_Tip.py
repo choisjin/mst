@@ -1,3 +1,4 @@
+#-*- coding:utf-8 -*-
 ## Ex 3-4. 툴팁 나타내기.
 ## https://codetorial.net/pyqt5/basics/tooltip.html
 
@@ -9,7 +10,7 @@ from PyQt5.QtGui import QFont
 class MyApp(QWidget):
 
     def __init__(self):
-        super().__init__()
+        super(MyApp, self).__init__()
         self.initUI()
 
     def initUI(self):
