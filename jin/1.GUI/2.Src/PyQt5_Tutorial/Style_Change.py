@@ -1,3 +1,4 @@
+#-*- coding:utf-8 -*-
 ## Ex 3-10. 스타일 꾸미기.
 ## https://codetorial.net/pyqt5/basics/stylesheet.html
 
@@ -8,7 +9,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
 class MyApp(QWidget):
 
     def __init__(self):
-        super().__init__()
+        super(MyApp, self).__init__()
         self.initUI()
 
     def initUI(self):

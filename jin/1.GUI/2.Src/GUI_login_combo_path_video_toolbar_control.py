@@ -19,8 +19,10 @@ class LoginForm(QtWidgets.QDialog):
         self.setWindowFlag(Qt.FramelessWindowHint)
 
         self.setWindowTitle('Login Window')
+        
         width = 255
         height = 110
+        #self.setGeometry(1000, 500, width, height)
         self.setFixedSize(width, height)
 
         logo_label = QtWidgets.QLabel(self)
@@ -152,30 +154,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.DataReset()
         self.cb.activated[str].connect(self.Select_Cam)
 
-        # Logout 버튼
-        # self.object_file = QtWidgets.QPushButton("Logout", self)
-        # self.object_file.resize(65,30)
-        # self.object_file.move(10,130)
-        # self.object_file.clicked.connect(self.Logout)
-
-        # Train_File 선택 버튼
-        # self.object_file = QtWidgets.QPushButton("Train", self)
-        # self.object_file.resize(65,30)
-        # self.object_file.move(85,130)
-        # self.object_file.clicked.connect(self.Insert_Train)
-        
-        # Video 선택 버튼
-        # video_file = QtWidgets.QPushButton("Video", self)
-        # video_file.resize(65,30)
-        # video_file.move(160,130)        
-        # video_file.clicked.connect(self.Insert_Video)
-        
-        # Start 버튼
-        # start_btn = QtWidgets.QPushButton("Strat", self)
-        # start_btn.resize(65,30)
-        # start_btn.move(235,130)
-        # start_btn.clicked.connect(self.Start_btn)
-        
         self.center()       # MainWindow 창 화면 중앙에 위치
         self.show()         # MainWindow 창 띄움
 
@@ -205,7 +183,10 @@ class MainWindow(QtWidgets.QMainWindow):
         global path1
         path1 = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', '', 'xml File(*.xml)')
         self.filePath.setText(path1[0])
-
+        if path1[0] == '':
+            self.train = 0
+        else:
+            self.train = 1
     
     def Insert_Video(self):
         global path
@@ -219,7 +200,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def Logout(self):
         self.close()
         self.logout = LoginForm()
-        self.logout.exec_()
+        self.logout.show()
     
     def Select_Cam(self, cam_num):
         if cam_num == 'Camera1':
@@ -254,12 +235,13 @@ class MainWindow(QtWidgets.QMainWindow):
             self.second = Normal_Camera(self.cam_num)
             self.DataReset()
             print('cam2 & normal')   
-            self.second.exec_()
+            #self.second.exec_()
         else:
             if self.train == 1 and self.video == 1:
                 self.second = Tracking_Video()
                 self.DataReset()
                 print('Train & video')
+            
             elif self.train == 0 and self.video == 1:
                 self.second = Normal_Video()
                 self.DataReset()
@@ -283,9 +265,6 @@ class Normal_Video(QtWidgets.QDialog):
         super(Normal_Video, self).__init__()
         self.setWindowTitle('Normal_Video')
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
-        width = 800
-        height = 500
-        self.setFixedSize(width, height)
         
         vbox = QtWidgets.QVBoxLayout()
         
@@ -305,46 +284,42 @@ class Normal_Video(QtWidgets.QDialog):
         self.move(qr.topRight())
 
     def video(self):
-        cap = cv2.VideoCapture(path[0])
-        cap.set(3,640) # set Width
-        cap.set(4,480) # set Height
-        self.video_speed = 0.03
-        self.video = True
-        while self.video:
-            self.ret, frame = cap.read()
-            if self.ret:
-                self.label.resize(640, 480)            
-                img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                h,w,c = img.shape
-                qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
-                pixmap = QtGui.QPixmap.fromImage(qImg)
-                self.label.setPixmap(pixmap)
+        self.cap = cv2.VideoCapture(path[0])
+        self.video_speed = 0.01 # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
+        while True:
+            self.ret, frame = self.cap.read()
+            if not self.ret:
+                self.close()
+                break
+            img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            h,w,c = img.shape
+            qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
+            pixmap = QtGui.QPixmap.fromImage(qImg)
+            self.label.setPixmap(pixmap)
 
-                sleep(self.video_speed) # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
-                cv2.waitKey(0)
-                  
-        cap.release()
-        cv2.destroyAllWindows()
+            sleep(self.video_speed) 
+            cv2.waitKey(0)
+        
+        self.cap.release()
     
     def closeEvent(self, event):
         quit_msg = "Want to exit?"
         reply = QtWidgets.QMessageBox.question(self, 'Exit', quit_msg, QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Yes)
 
-        if reply == QtWidgets.QMessageBox.Yes:
+        if reply == QtWidgets.QMessageBox.Yes:          
             event.accept()
-            self.video = False
         else:
             event.ignore()
-
+            self.video = True
+    
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
-            self.video = False
-            self.close()
+            self.cap.release()
+
 
 class Tracking_Video(QtWidgets.QDialog):
     def __init__(self):
         super(Tracking_Video, self).__init__()
-        
         self.setWindowTitle('Tracking_Video_Viewer')
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
@@ -367,48 +342,43 @@ class Tracking_Video(QtWidgets.QDialog):
 
     def video(self):
         self.cap = cv2.VideoCapture(path[0])
-        self.cap.set(3,640) # set Width
-        self.cap.set(4,480) # set Height
-        self.video_speed = 0.01
-        self.video = True
-
+        video_speed = 0.01 # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
         faceCascade = cv2.CascadeClassifier(path1[0])
-
-        while self.video:
-            ret, frame = self.cap.read()
+        while True:
+            self.ret, frame = self.cap.read()
             faces = faceCascade.detectMultiScale(frame, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
             
-            if ret:
-                for (x,y,w,h) in faces:
-                    cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),1)      
-                
-                self.label.resize(640, 480)            
-                img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                h,w,c = img.shape
-                qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
-                pixmap = QtGui.QPixmap.fromImage(qImg)
-                self.label.setPixmap(pixmap)
-
-                sleep(self.video_speed) # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
-                cv2.waitKey(0)
+            if not self.ret:
+                self.close()
+                break
+            for (x,y,w,h) in faces:
+                cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),1)      
+            
+            img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            h,w,c = img.shape
+            qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
+            pixmap = QtGui.QPixmap.fromImage(qImg)
+            self.label.setPixmap(pixmap)
+            
+            sleep(video_speed) 
+            cv2.waitKey(0)
         
         self.cap.release()
-        cv2.destroyAllWindows()
     
     def closeEvent(self, event):
         quit_msg = "Want to exit?"
         reply = QtWidgets.QMessageBox.question(self, 'Exit', quit_msg, QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Yes)
 
-        if reply == QtWidgets.QMessageBox.Yes:
+        if reply == QtWidgets.QMessageBox.Yes:          
             event.accept()
-            self.video = False
         else:
             event.ignore()
-
+            self.video = True
+    
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
-            self.video = False
-            self.close()
+            self.cap.release()
+
 
 class Camera_Control(QtWidgets.QDialog):
     def __init__(self):

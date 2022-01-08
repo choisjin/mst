@@ -1,3 +1,4 @@
+#-*- coding:utf-8 -*-
 ## Ex 3-7. 툴바 만들기.
 ## https://codetorial.net/pyqt5/basics/toolbar.html
 
@@ -9,7 +10,7 @@ from PyQt5.QtGui import QIcon
 class MyApp(QMainWindow):
 
     def __init__(self):
-        super().__init__()
+        super(MyApp, self).__init__()
         self.initUI()
 
     def initUI(self):

@@ -25,7 +25,7 @@ class MyApp(QWidget):
         cb.activated[str].connect(self.onActivated)
 
         self.setWindowTitle('QComboBox')
-        self.setGeometry(300, 300, 300, 200)
+        self.setGeometry(300, 300, 100, 100)
         self.show()
 
     def CamViewer(self):
