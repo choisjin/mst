@@ -436,27 +436,43 @@ class Camera_Control(QtWidgets.QDialog):
         self.button_Up.resize(40, 40)
         self.button_Up.move(67.5, 5)
         self.button_Up.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Up.setFocusPolicy(Qt.ClickFocus)
         self.button_Up.clicked.connect(self.Manual_Up)
 
         self.button_Down = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/Direction/down.png'),'', self)
         self.button_Down.resize(40, 40)
         self.button_Down.move(67.5, 46)
         self.button_Down.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Down.setFocusPolicy(Qt.ClickFocus)
         self.button_Down.clicked.connect(self.Manual_Down)
 
         self.button_Right = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/Direction/right.png'),'', self)
         self.button_Right.resize(40, 40)
         self.button_Right.move(108, 46)
         self.button_Right.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Right.setFocusPolicy(Qt.ClickFocus)
         self.button_Right.clicked.connect(self.Manual_Right)
 
         self.button_Left = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/Direction/left.png'),'', self)
         self.button_Left.resize(40, 40)
         self.button_Left.move(26.5, 46)
         self.button_Left.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Left.setFocusPolicy(Qt.ClickFocus)
         self.button_Left.clicked.connect(self.Manual_Left)
 
         self.show()
+    
+    def keyPressEvent(self, k):
+        if k.key() == Qt.Key_Escape:
+            self.close()
+        elif k.key() == Qt.Key_Up:
+            self.Manual_Up()
+        elif k.key() == Qt.Key_Down:
+            self.Manual_Down()
+        elif k.key() == Qt.Key_Right:
+            self.Manual_Right()
+        elif k.key() == Qt.Key_Left:
+            self.Manual_Left()
 
     def Manual_Up(self):
         y = 1
@@ -546,9 +562,9 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set):
 
         self.camera=camera  
         if camera == 1 :
-            self._sub = rospy.Subscriber('/camera1/usb_cam1/image_raw', Image, self.callback, queue_size=10)
+            self._sub = rospy.Subscriber('/camera1/usb_cam1/image_raw', Image, self.callback, queue_size=1)
         elif camera == 2 :
-            self._sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.callback, queue_size=10)
+            self._sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.callback, queue_size=1)
         
         self.bridge = CvBridge()
 

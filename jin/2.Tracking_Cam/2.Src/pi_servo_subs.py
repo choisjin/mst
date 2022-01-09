@@ -1,6 +1,6 @@
 #-*- coding:utf-8 -*-
 import rospy
-from std_msgs.msg import UInt16MultiArray
+from std_msgs.msg import UInt16MultiArray, Int8MultiArray
 import Adafruit_PCA9685 
 
 pwm = Adafruit_PCA9685.PCA9685() 
@@ -20,15 +20,19 @@ def set_servo_pulse(channel, pulse):
     pulse //= pulse_length
     pwm.set_pwm(channel, 0, pulse)
 
+# class Subs_Choice():
+    # def __init__(self):
+        # while True:
+            # if 
 class Servo_Subscriber():
     def __init__(self):
-        self._sub_x = rospy.Subscriber('/servo_x3', UInt16MultiArray, self.callback, queue_size=1) # 객체인식 바운딩박스 x,y,w,h 토픽
+        self.Servo_subs = rospy.Subscriber('/servo_x3', UInt16MultiArray, self.callback, queue_size=1) # 객체인식 바운딩박스 x,y,w,h 토픽
         self.servo_x = 320   # servo_x defalt position
         self.servo_y = 390
         pwm.set_pwm(1, 0, self.servo_x)
         pwm.set_pwm(0, 0, self.servo_y)
     
-    def callback(self,servo_msg):
+    def callback(self, servo_msg):
         x = servo_msg.data[0]
         y = servo_msg.data[1]
         w = servo_msg.data[2]
@@ -56,7 +60,35 @@ class Servo_Subscriber():
     def main(self):
         rospy.spin()
 
+class Manual_Subscriber():
+    def __init__(self):
+        self._manual = rospy.Subscriber('/manual_control', Int8MultiArray, self.callback, queue_size=1)
+        self.servo_x = 320   # servo_x defalt position
+        self.servo_y = 390
+        pwm.set_pwm(1, 0, self.servo_x)
+        pwm.set_pwm(0, 0, self.servo_y)
+
+    def callback(self, manual_msg):
+        x = manual_msg.data[0]
+        y = manual_msg.data[1]
+
+        self.servo_x1 = x
+        self.servo_y1 = y
+        
+        if self.servo_x1 == 1:
+            self.servo_x += 1
+            pwm.set_pwm(1, 0, self.servo_x)
+
+        elif self.servo_y1 == 1:
+            self.servo_x += 1
+            pwm.set_pwm(0, 0, self.servo_y)
+
+    def main(self):
+        rospy.spin()
+            
 if __name__ == '__main__':
     rospy.init_node('Servo_Move')
     node = Servo_Subscriber()
     node.main()
+    manual = Manual_Subscriber()
+    manual.main()
