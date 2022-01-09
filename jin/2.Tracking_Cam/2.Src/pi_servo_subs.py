@@ -70,11 +70,11 @@ class Servo_Subscriber():
             pwm.set_pwm(1, 0, self.servo_x)
 
         elif self.servo_y1 == 1:
-            self.servo_x += 1
+            self.servo_y += 1
             pwm.set_pwm(0, 0, self.servo_y) 
 
         elif self.servo_y1 == -1:
-            self.servo_x -= 1
+            self.servo_y -= 1
             pwm.set_pwm(0, 0, self.servo_y)
 
     def main(self):
