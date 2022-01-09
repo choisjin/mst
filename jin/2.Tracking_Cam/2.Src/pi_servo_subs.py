@@ -20,13 +20,10 @@ def set_servo_pulse(channel, pulse):
     pulse //= pulse_length
     pwm.set_pwm(channel, 0, pulse)
 
-# class Subs_Choice():
-    # def __init__(self):
-        # while True:
-            # if 
 class Servo_Subscriber():
     def __init__(self):
         self.Servo_subs = rospy.Subscriber('/servo_x3', UInt16MultiArray, self.callback, queue_size=1) # 객체인식 바운딩박스 x,y,w,h 토픽
+        self._manual = rospy.Subscriber('/manual_control', Int8MultiArray, self.callback1, queue_size=1)
         self.servo_x = 320   # servo_x defalt position
         self.servo_y = 390
         pwm.set_pwm(1, 0, self.servo_x)
@@ -56,19 +53,8 @@ class Servo_Subscriber():
         elif self.servo_y1 < midScreenY-midScreenWindow:
             self.servo_y -= 1
             pwm.set_pwm(0, 0, self.servo_y)      
-     
-    def main(self):
-        rospy.spin()
 
-class Manual_Subscriber():
-    def __init__(self):
-        self._manual = rospy.Subscriber('/manual_control', Int8MultiArray, self.callback, queue_size=1)
-        self.servo_x = 320   # servo_x defalt position
-        self.servo_y = 390
-        pwm.set_pwm(1, 0, self.servo_x)
-        pwm.set_pwm(0, 0, self.servo_y)
-
-    def callback(self, manual_msg):
+    def callback1(self, manual_msg):
         x = manual_msg.data[0]
         y = manual_msg.data[1]
 
@@ -81,14 +67,18 @@ class Manual_Subscriber():
 
         elif self.servo_y1 == 1:
             self.servo_x += 1
-            pwm.set_pwm(0, 0, self.servo_y)
+            pwm.set_pwm(0, 0, self.servo_y) 
 
     def main(self):
         rospy.spin()
-            
+
+#class Manual_Subscriber():
+# 
+# 
+    # def main(self):
+        # rospy.spin()
+            # 
 if __name__ == '__main__':
     rospy.init_node('Servo_Move')
     node = Servo_Subscriber()
     node.main()
-    manual = Manual_Subscriber()
-    manual.main()
