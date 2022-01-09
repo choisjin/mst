@@ -11,7 +11,7 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from std_msgs.msg import UInt16MultiArray, Int8MultiArray
-
+import numpy as np
 
 class LoginForm(QtWidgets.QDialog):         # 로그인 화면
     def __init__(self):                     # 로그인 화면 셋팅
@@ -184,7 +184,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.toolbar.addAction(exitAction)
 
     def DataReset(self):                            # 입력 데이터 초기화
-        self.cam_num = 0                            # Camera 선택 초기화
+        self.cam_select = 0                         # Camera 선택 초기화
         self.train = 0                              # Train 선택 초기화
         self.filePath.clear()                       # Train 파일 경로 초기화
         self.video = 0                              # Video 선택 초기화
@@ -230,40 +230,25 @@ class MainWindow(QtWidgets.QMainWindow):
             self.show()
             
     def Select_Cam(self, cam_num):
-        if cam_num == 'Camera1':
-            self.videoPath.clear()
-            self.cam_num = 1
-        elif cam_num == 'Camera2':
-            self.videoPath.clear()
-            self.cam_num = 2
-        elif cam_num == 'Select Camera...':
+        if cam_num == 'Select Camera...':
             self.DataReset()
-
-    def Start_btn(self):    
-        if self.cam_num == 1 and self.train == 1:
+        else:
+            self.cam_num = cam_num[-1]
+            self.cam_num = int(self.cam_num)
+            self.cam_select = 1            
+    def Start_btn(self):
+        if self.cam_select == 1 and self.train == 1:
             rospy.init_node('Face_Tracking', anonymous=True)
             self.second = Tracking_Camera(self.cam_num)
             self.DataReset()
             self.ComboBoxInit()
-            print('cam1 & train')
-        elif self.cam_num == 2 and self.train == 1:
-            rospy.init_node('Face_Tracking', anonymous=True)
-            self.second = Tracking_Camera(self.cam_num)
-            self.DataReset()
-            self.ComboBoxInit()
-            print('cam2 & train')
-        elif self.cam_num == 1:
+            print('Train_Cam')
+        elif self.cam_select == 1:
             rospy.init_node('Face_Tracking', anonymous=True)
             self.second = Normal_Camera(self.cam_num)
             self.DataReset()
             self.ComboBoxInit()
-            print('cam1 & normal')
-        elif self.cam_num == 2:
-            rospy.init_node('Face_Tracking', anonymous=True)
-            self.second = Normal_Camera(self.cam_num)
-            self.DataReset()
-            self.ComboBoxInit()
-            print('cam2 & normal')   
+            print('Normal_Cam')
         else:
             if self.train == 1 and self.video == 1:
                 self.second = Tracking_Video()
@@ -568,17 +553,10 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set):
         
         self.bridge = CvBridge()
 
-        if self.camera == 1:
-            self.width = 640
-            self.height = 480
-        elif self.camera == 2:
-            self.width = 320
-            self.height = 240
-
-        Normal_cam_width = self.width
-        Normal_cam_height = self.height + 40
-        self.setFixedSize(Normal_cam_width, Normal_cam_height)
-        self.setGeometry(Position.x()-Normal_cam_width-10, Position.y(), Normal_cam_width, Normal_cam_height)
+        width = 640
+        height = 480 + 40
+        self.setFixedSize(width, height)
+        self.setGeometry(Position.x()-width-10, Position.y(), width, height)
         
         self.label = QtWidgets.QLabel(self)
         self.label.move(0,0)
@@ -593,11 +571,13 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set):
         except CvBridgeError as e:
             print(e)
            
-        self.label.resize(self.width, self.height)
+        self.label.resize(640, 480)
         img = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB) 
+        img = cv2.flip(img, 1)
         h,w,c = img.shape
         qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
         pixmap = QtGui.QPixmap.fromImage(qImg)
+        pixmap = pixmap.scaledToWidth(640)
         self.label.setPixmap(pixmap)
 
     def closeEvent(self, event):
@@ -619,7 +599,7 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set):
     def __init__(self, camera):
         super(Tracking_Camera, self).__init__()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
-        
+
         pal = QtGui.QPalette()
         pal.setColor(QtGui.QPalette.Background, QtGui.QColor(255, 255, 255))
         self.setAutoFillBackground(True)
@@ -627,23 +607,16 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set):
 
         self.camera=camera  
         if camera == 1 :
-            self._sub = rospy.Subscriber('/camera1/usb_cam1/image_raw', Image, self.callback, queue_size=10)
+            self._sub = rospy.Subscriber('/camera1/usb_cam1/image_raw', Image, self.callback, queue_size=1)
         elif camera == 2 :
-            self._sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.callback, queue_size=10)
+            self._sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.callback, queue_size=1)
         
         self.bridge = CvBridge()
 
-        if self.camera == 1:
-            self.width = 640
-            self.height = 480
-        elif self.camera == 2:
-            self.width = 320
-            self.height = 240
-
-        Normal_cam_width = self.width
-        Normal_cam_height = self.height + 40
-        self.setFixedSize(Normal_cam_width, Normal_cam_height)
-        self.setGeometry(Position.x()-Normal_cam_width-10, Position.y(), Normal_cam_width, Normal_cam_height)
+        width = 640
+        height = 480 + 40
+        self.setFixedSize(width, height)
+        self.setGeometry(Position.x()-width-10, Position.y(), width, height)
         
         self.label = QtWidgets.QLabel(self)
         self.label.move(0,0)
@@ -654,35 +627,29 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set):
 
     def callback(self, data):  
         try:
-            cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+            self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
             print(e)
             
         faceCascade = cv2.CascadeClassifier(path1[0])
-        faces = faceCascade.detectMultiScale(cv_image, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
+        self.cv_image = np.uint8(self.cv_image)
+        faces = faceCascade.detectMultiScale(self.cv_image, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
         
-        #얼굴인식 후 사각형 그리기
         for (x,y,w,h) in faces:
-            cv2.rectangle(cv_image,(x,y),(x+w,y+h),(0,255,0),1)
+            cv2.rectangle(self.cv_image,(x,y),(x+w,y+h),(0,255,0),1)
 
             pub = rospy.Publisher('servo_x3', UInt16MultiArray, queue_size=10)
             my_msg = UInt16MultiArray()
             my_msg.data = [x,y,w,h]
             pub.publish(my_msg)
         
-        #이미지 출력
-        if self.camera == 1:
-            width = 640
-            height = 480
-        elif self.camera == 2:
-            width = 320
-            height = 240
-        
-        self.label.resize(width, height)
-        img = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB) 
+        self.label.resize(640, 480)
+        img = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB) 
+        img = cv2.flip(img, 1)
         h,w,c = img.shape
         qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
         pixmap = QtGui.QPixmap.fromImage(qImg)
+        pixmap = pixmap.scaledToWidth(640)
         self.label.setPixmap(pixmap)
 
     def closeEvent(self, event):

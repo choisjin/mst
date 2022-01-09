@@ -70,22 +70,16 @@ class Servo_Subscriber():
             pwm.set_pwm(1, 0, self.servo_x)
 
         elif self.servo_y1 == 1:
-            self.servo_y += 1
+            self.servo_y -= 1
             pwm.set_pwm(0, 0, self.servo_y) 
 
         elif self.servo_y1 == -1:
-            self.servo_y -= 1
+            self.servo_y += 1
             pwm.set_pwm(0, 0, self.servo_y)
 
     def main(self):
         rospy.spin()
 
-#class Manual_Subscriber():
-# 
-# 
-    # def main(self):
-        # rospy.spin()
-            # 
 if __name__ == '__main__':
     rospy.init_node('Servo_Move')
     node = Servo_Subscriber()
