@@ -6,6 +6,7 @@ from PyQt5 import QtGui
 from PyQt5.QtCore import Qt
 from time import sleep
 # Topic통신 관련 모듈
+import os
 import rospy
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
@@ -134,10 +135,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.cb = QtWidgets.QComboBox(self)
         self.cb.resize(Path_width, Path_height)
         self.cb.move(5, 40)
-        self.DataReset()
+        #self.DataReset()
         self.ComboBoxInit()
         self.cb.activated[str].connect(self.Select_Cam)
 
+        self.train = 0
+        self.video = 0
+        self.cam_num = 0
         self.show()                                 # MainWindow 창 띄움
 
     def setToolBar(self):                           # 툴바 셋팅
@@ -183,15 +187,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.toolbar.addAction(logoutAction)
         self.toolbar.addAction(exitAction)
 
-    def DataReset(self):                            # 입력 데이터 초기화
-        self.cam_select = 0                         # Camera 선택 초기화
-        self.train = 0                              # Train 선택 초기화
-        self.filePath.clear()                       # Train 파일 경로 초기화
-        self.video = 0                              # Video 선택 초기화
-        self.videoPath.clear()                      # Video 파일 경로 초기화
-
     def ComboBoxInit(self):                         # ComboBox 초기화
         self.cb.clear()                             # ComboBox 모두 지우기
+        self.cam_num = 0
         combo_num = 2                               # ComboBox 생성 갯수
         combo_init = 0                              
         self.cb.setStyleSheet('QComboBox {background-color: #FFFFFF; color: Black;}')
@@ -201,6 +199,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.cb.addItem('Camera%d' % combo_init) 
 
     def Insert_Train(self):
+        self.filePath.clear()
         global path1
         path1 = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', '', 'xml File(*.xml)')
         self.filePath.setText(path1[0])
@@ -217,7 +216,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.video = 0
         else:
             self.video = 1
-            self.cam_num = 0
+            self.cam_select = 0
             self.ComboBoxInit()
     
     def Logout(self):
@@ -230,35 +229,33 @@ class MainWindow(QtWidgets.QMainWindow):
             self.show()
             
     def Select_Cam(self, cam_num):
+        self.videoPath.clear()
         if cam_num == 'Select Camera...':
-            self.DataReset()
+            self.cam_select = 0
         else:
             self.cam_num = cam_num[-1]
             self.cam_num = int(self.cam_num)
             self.cam_select = 1            
+    
     def Start_btn(self):
-        if self.cam_select == 1 and self.train == 1:
-            rospy.init_node('Face_Tracking', anonymous=True)
-            self.second = Tracking_Camera(self.cam_num)
-            self.DataReset()
-            self.ComboBoxInit()
+        self.filePath.clear()
+        if self.cam_select == 1 and self.train == 1: 
             print('Train_Cam')
+            self.train = 0
+            rospy.init_node('Tracking_Cam', anonymous=False)
+            Tracking_Camera(self.cam_num)
         elif self.cam_select == 1:
-            rospy.init_node('Face_Tracking', anonymous=True)
-            self.second = Normal_Camera(self.cam_num)
-            self.DataReset()
-            self.ComboBoxInit()
             print('Normal_Cam')
+            rospy.init_node('Tracking_Cam', anonymous=False)
+            Normal_Camera(self.cam_num)
         else:
             if self.train == 1 and self.video == 1:
-                self.second = Tracking_Video()
-                self.DataReset()
-                self.ComboBoxInit()
                 print('Train & video')
+                self.train = 0
+                Tracking_Video()
             elif self.train == 0 and self.video == 1:
-                self.second = Normal_Video()
-                self.DataReset()
-                print('video only')                   
+                print('video only')
+                Normal_Video() 
 
     def closeEvent(self, event):
         quit_msg = "Want to exit?"
@@ -266,7 +263,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if reply == QtWidgets.QMessageBox.Yes:
             self.logout_signal=1
-            event.accept()
+            
         else:
             self.logout_signal=2
             event.ignore()
@@ -321,17 +318,7 @@ class Normal_Video(QtWidgets.QDialog):
             cv2.waitKey(0)
         
         self.cap.release()
-    
-    # def closeEvent(self, event):
-        # quit_msg = "Want to exit?"
-        # reply = QtWidgets.QMessageBox.question(self, 'Exit', quit_msg, QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Yes)
-# 
-        # if reply == QtWidgets.QMessageBox.Yes:          
-            # event.accept()
-        # else:
-            # event.ignore()
-            # self.video = True
-    
+
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             self.cap.release()
@@ -388,17 +375,7 @@ class Tracking_Video(QtWidgets.QDialog):
             cv2.waitKey(0)
         
         self.cap.release()
-    
-    # def closeEvent(self, event):
-        # quit_msg = "Want to exit?"
-        # reply = QtWidgets.QMessageBox.question(self, 'Exit', quit_msg, QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Yes)
-# 
-        # if reply == QtWidgets.QMessageBox.Yes:          
-            # event.accept()
-        # else:
-            # event.ignore()
-            # self.video = True
-    
+
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             self.cap.release()
@@ -421,28 +398,28 @@ class Camera_Control(QtWidgets.QDialog):
         self.button_Up.resize(40, 40)
         self.button_Up.move(67.5, 5)
         self.button_Up.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_Up.setFocusPolicy(Qt.ClickFocus)
+        self.button_Up.setFocusPolicy(Qt.NoFocus)
         self.button_Up.clicked.connect(self.Manual_Up)
 
         self.button_Down = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/Direction/down.png'),'', self)
         self.button_Down.resize(40, 40)
         self.button_Down.move(67.5, 46)
         self.button_Down.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_Down.setFocusPolicy(Qt.ClickFocus)
+        self.button_Down.setFocusPolicy(Qt.NoFocus)
         self.button_Down.clicked.connect(self.Manual_Down)
 
         self.button_Right = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/Direction/right.png'),'', self)
         self.button_Right.resize(40, 40)
         self.button_Right.move(108, 46)
         self.button_Right.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_Right.setFocusPolicy(Qt.ClickFocus)
+        self.button_Right.setFocusPolicy(Qt.NoFocus)
         self.button_Right.clicked.connect(self.Manual_Right)
 
         self.button_Left = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/Direction/left.png'),'', self)
         self.button_Left.resize(40, 40)
         self.button_Left.move(26.5, 46)
         self.button_Left.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_Left.setFocusPolicy(Qt.ClickFocus)
+        self.button_Left.setFocusPolicy(Qt.NoFocus)
         self.button_Left.clicked.connect(self.Manual_Left)
 
         self.show()
@@ -560,7 +537,7 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set):
         
         self.label = QtWidgets.QLabel(self)
         self.label.move(0,0)
-
+        
         self.cam_btn_set()
 
         self.show()    
@@ -580,19 +557,8 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set):
         pixmap = pixmap.scaledToWidth(640)
         self.label.setPixmap(pixmap)
 
-    # def closeEvent(self, event):
-        # quit_msg = "Want to exit?"
-        # reply = QtWidgets.QMessageBox.question(self, 'Exit', quit_msg, QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Yes)
-# 
-        # if reply == QtWidgets.QMessageBox.Yes:
-            # event.accept()
-            # self.cv_image = False
-        # else:
-            # event.ignore()
-
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
-            self.cv_image = False
             self.Exit_cam()
             self.close()
 
@@ -600,18 +566,18 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set):
     def __init__(self, camera):
         super(Tracking_Camera, self).__init__()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
-
+    
         pal = QtGui.QPalette()
         pal.setColor(QtGui.QPalette.Background, QtGui.QColor(255, 255, 255))
         self.setAutoFillBackground(True)
         self.setPalette(pal)
 
         self.camera=camera  
-        if camera == 1 :
+        if self.camera == 1 :
             self._sub = rospy.Subscriber('/camera1/usb_cam1/image_raw', Image, self.callback, queue_size=1)
-        elif camera == 2 :
+        elif self.camera == 2 :
             self._sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.callback, queue_size=1)
-        
+       
         self.bridge = CvBridge()
 
         width = 640
@@ -627,45 +593,32 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set):
         self.show()    
 
     def callback(self, data):  
-        try:
             self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-        except CvBridgeError as e:
-            print(e)
+            if path1[0] == '':
+                exit()            
+            faceCascade = cv2.CascadeClassifier(path1[0])
+
+            self.cv_image = np.uint8(self.cv_image)
+            faces = faceCascade.detectMultiScale(self.cv_image, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
+
+            for (x,y,w,h) in faces:
+                cv2.rectangle(self.cv_image,(x,y),(x+w,y+h),(0,255,0),1)
+                pub = rospy.Publisher('servo_x3', UInt16MultiArray, queue_size=10)
+                self.my_msg = UInt16MultiArray()
+                self.my_msg.data = [x,y,w,h]
+                pub.publish(self.my_msg)
+        
+            self.label.resize(640, 480)
+            img = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB) 
+            img = cv2.flip(img, 1)
+            img_h,img_w,img_c = img.shape
+            qImg = QtGui.QImage(img.data, img_w, img_h, img_w*img_c, QtGui.QImage.Format_RGB888)
+            pixmap = QtGui.QPixmap.fromImage(qImg)
+            pixmap = pixmap.scaledToWidth(640)
+            self.label.setPixmap(pixmap)
             
-        faceCascade = cv2.CascadeClassifier(path1[0])
-        self.cv_image = np.uint8(self.cv_image)
-        faces = faceCascade.detectMultiScale(self.cv_image, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
-        
-        for (x,y,w,h) in faces:
-            cv2.rectangle(self.cv_image,(x,y),(x+w,y+h),(0,255,0),1)
-
-            pub = rospy.Publisher('servo_x3', UInt16MultiArray, queue_size=10)
-            my_msg = UInt16MultiArray()
-            my_msg.data = [x,y,w,h]
-            pub.publish(my_msg)
-        
-        self.label.resize(640, 480)
-        img = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB) 
-        img = cv2.flip(img, 1)
-        h,w,c = img.shape
-        qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
-        pixmap = QtGui.QPixmap.fromImage(qImg)
-        pixmap = pixmap.scaledToWidth(640)
-        self.label.setPixmap(pixmap)
-
-    # def closeEvent(self, event):
-        # quit_msg = "Want to exit?"
-        # reply = QtWidgets.QMessageBox.question(self, 'Exit', quit_msg, QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Yes)
-# 
-        # if reply == QtWidgets.QMessageBox.Yes:
-            # event.accept()
-            # self.cv_image = False
-        # else:
-            # event.ignore()
-
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
-            self.cv_image = False
             self.Exit_cam()
             self.close()    
 
