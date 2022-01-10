@@ -6,9 +6,9 @@ import Adafruit_PCA9685
 pwm = Adafruit_PCA9685.PCA9685() 
 pwm.set_pwm_freq(60) 
 
-midScreenX = 640/2    # 화면 x축 중앙
-midScreenY = 480/2    # 화면 y축 중앙
-midScreenWindow = 35  # 객체를 인식한 사각형이 중앙에서 벗어날 수 있는 여유 값
+midScreenX = 320/2    # 화면 x축 중앙
+midScreenY = 240/2    # 화면 y축 중앙
+midScreenWindow = 17  # 객체를 인식한 사각형이 중앙에서 벗어날 수 있는 여유 값
 
 def set_servo_pulse(channel, pulse):
     pulse_length = 1000000    # 1,000,000 us per second
@@ -22,14 +22,15 @@ def set_servo_pulse(channel, pulse):
 
 class Servo_Subscriber():
     def __init__(self):
-        self.Servo_subs = rospy.Subscriber('/servo_x3', UInt16MultiArray, self.callback, queue_size=1) # 객체인식 바운딩박스 x,y,w,h 토픽
-        self._manual = rospy.Subscriber('/manual_control', Int8MultiArray, self.callback1, queue_size=1)
+        self.Servo_subs = rospy.Subscriber('/Servo_Cam2', UInt16MultiArray, self.callback, queue_size=1) # 객체인식 바운딩박스 x,y,w,h 토픽
+        self._Manual_subs = rospy.Subscriber('/manual_control2', Int8MultiArray, self.callback1, queue_size=1)
         self.servo_x = 320   # servo_x defalt position
         self.servo_y = 390
         pwm.set_pwm(1, 0, self.servo_x)
         pwm.set_pwm(0, 0, self.servo_y)
-    
+        
     def callback(self, servo_msg):
+        print(servo_msg)
         x = servo_msg.data[0]
         y = servo_msg.data[1]
         w = servo_msg.data[2]
