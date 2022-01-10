@@ -17,7 +17,7 @@ import numpy as np
 class LoginForm(QtWidgets.QDialog):         # 로그인 화면
     def __init__(self):                     # 로그인 화면 셋팅
         super(LoginForm, self).__init__()
-        self.setWindowFlag(Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         pal = QtGui.QPalette()
         pal.setColor(QtGui.QPalette.Background, QtGui.QColor(255, 255, 255))
         self.setAutoFillBackground(True)
@@ -276,29 +276,27 @@ class Normal_Video(QtWidgets.QDialog):
     def __init__(self):
         super(Normal_Video, self).__init__()
         self.setWindowTitle('Normal_Video')
-        self.setWindowFlags(Qt.WindowStaysOnTopHint)
-        
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+
         pal = QtGui.QPalette()
         pal.setColor(QtGui.QPalette.Background, QtGui.QColor(255, 255, 255))
         self.setAutoFillBackground(True)
-        self.setPalette(pal)        
-        
+        self.setPalette(pal)       
+
+        width = 640
+        height = 480 + 40
+        self.setFixedSize(width, height)
+        self.setGeometry(Position.x()-width-10, Position.y(), width, height)
+
         vbox = QtWidgets.QVBoxLayout()
         
-        self.label = QtWidgets.QLabel()
-        self.setLayout(vbox)
+        self.label = QtWidgets.QLabel(self)
+        self.label.move(0,0)
         
         vbox.addWidget(self.label)
         
-        self.center()
         self.show()
         self.video()
-
-    def center(self):
-        qr = self.frameGeometry()
-        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topRight())
 
     def video(self):
         self.cap = cv2.VideoCapture(path[0])
@@ -308,12 +306,13 @@ class Normal_Video(QtWidgets.QDialog):
             if not self.ret:
                 self.close()
                 break
+            self.label.resize(640, 480)
             img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             h,w,c = img.shape
             qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
             pixmap = QtGui.QPixmap.fromImage(qImg)
+            pixmap = pixmap.scaledToWidth(640)
             self.label.setPixmap(pixmap)
-
             sleep(self.video_speed) 
             cv2.waitKey(0)
         
@@ -326,30 +325,23 @@ class Normal_Video(QtWidgets.QDialog):
 class Tracking_Video(QtWidgets.QDialog):
     def __init__(self):
         super(Tracking_Video, self).__init__()
-        self.setWindowTitle('Tracking_Video_Viewer')
-        self.setWindowFlags(Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         
         pal = QtGui.QPalette()
         pal.setColor(QtGui.QPalette.Background, QtGui.QColor(255, 255, 255))
         self.setAutoFillBackground(True)
         self.setPalette(pal)
         
-        vbox = QtWidgets.QVBoxLayout()
+        width = 640
+        height = 480 + 40
+        self.setFixedSize(width, height)
+        self.setGeometry(Position.x()-width-10, Position.y(), width, height)
         
-        self.label = QtWidgets.QLabel()
-        self.setLayout(vbox)
-        
-        vbox.addWidget(self.label)
-        
-        self.center()
-        self.show()
-        self.video()
+        self.label = QtWidgets.QLabel(self)
+        self.label.move(0,0)
 
-    def center(self):
-        qr = self.frameGeometry()
-        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topRight())
+        self.show()  
+        self.video()
 
     def video(self):
         self.cap = cv2.VideoCapture(path[0])
@@ -365,10 +357,12 @@ class Tracking_Video(QtWidgets.QDialog):
             for (x,y,w,h) in faces:
                 cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),1)      
             
+            self.label.resize(640, 480)
             img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             h,w,c = img.shape
             qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
             pixmap = QtGui.QPixmap.fromImage(qImg)
+            pixmap = pixmap.scaledToWidth(640)
             self.label.setPixmap(pixmap)
             
             sleep(video_speed) 
@@ -527,10 +521,7 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set):
         self.setPalette(pal)
 
         self.camera=camera  
-        if camera == 1 :
-            self._sub = rospy.Subscriber('/camera1/usb_cam1/image_raw', Image, self.callback, queue_size=1)
-        elif camera == 2 :
-            self._sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.callback, queue_size=1)
+        self._sub = rospy.Subscriber('/camera%s/usb_cam%s/image_raw' % (str(camera), str(camera)), Image, self.callback, queue_size=1)
         
         self.bridge = CvBridge()
 
@@ -570,18 +561,15 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set):
     def __init__(self, camera):
         super(Tracking_Camera, self).__init__()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
-    
+
         pal = QtGui.QPalette()
         pal.setColor(QtGui.QPalette.Background, QtGui.QColor(255, 255, 255))
         self.setAutoFillBackground(True)
         self.setPalette(pal)
 
-        self.camera = camera  
-        if self.camera == 1 :
-            self._sub = rospy.Subscriber('/camera1/usb_cam1/image_raw', Image, self.callback, queue_size=1)
-        elif self.camera == 2 :
-            self._sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.callback, queue_size=1)
-       
+        self.camera=camera  
+        self._sub = rospy.Subscriber('/camera%s/usb_cam%s/image_raw' % (str(camera), str(camera)), Image, self.callback, queue_size=1)
+        
         self.bridge = CvBridge()
 
         width = 640
@@ -591,15 +579,15 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set):
         
         self.label = QtWidgets.QLabel(self)
         self.label.move(0,0)
-
+        
         self.cam_btn_set(camera)
 
-        self.show()    
+        self.show()     
 
     def callback(self, data):  
             self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-            # if path1[0] == '':
-                # exit()            
+            if path1[0] == '':
+                exit()            
             faceCascade = cv2.CascadeClassifier(path1[0])
 
             self.cv_image = np.uint8(self.cv_image)
