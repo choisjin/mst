@@ -567,70 +567,60 @@ class Camera_Control(QtWidgets.QDialog, Background_Set):    # Cam 수동조작 &
         self.button_Up.move(67.5, 5)
         self.button_Up.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Up.setFocusPolicy(Qt.NoFocus)
-        self.button_Up.clicked.connect(self.Manual_Up)
+        self.button_Up.clicked.connect(lambda:self.Manual(1))
 
         self.button_Down = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/down.png'),'', self)
         self.button_Down.resize(40, 40)
         self.button_Down.move(67.5, 46)
         self.button_Down.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Down.setFocusPolicy(Qt.NoFocus)
-        self.button_Down.clicked.connect(self.Manual_Down)
+        self.button_Down.clicked.connect(lambda:self.Manual(2))
 
         self.button_Right = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/right.png'),'', self)
         self.button_Right.resize(40, 40)
         self.button_Right.move(108, 46)
         self.button_Right.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Right.setFocusPolicy(Qt.NoFocus)
-        self.button_Right.clicked.connect(self.Manual_Right)
+        self.button_Right.clicked.connect(lambda:self.Manual(3))
 
         self.button_Left = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/left.png'),'', self)
         self.button_Left.resize(40, 40)
         self.button_Left.move(26.5, 46)
         self.button_Left.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Left.setFocusPolicy(Qt.NoFocus)
-        self.button_Left.clicked.connect(self.Manual_Left)
+        self.button_Left.clicked.connect(lambda:self.Manual(4))
 
         self.show()
 
-    def Manual_Up(self):
-        y = 1
-        pub = rospy.Publisher('manual_control%d'%self.Camera_control_num, Int8MultiArray, queue_size=1)
+    def Manual(self, args):
+        self.args = args
+        x = 0
+        y = 0
+        if self.args == 1:
+            x, y = 0, 1
+        elif self.args == 2:
+            x, y = 0, -1
+        elif self.args == 3:
+            x, y = 1, 0
+        elif self.args == 4:
+            x, y = -1, 0       
+ 
+        pub = rospy.Publisher('manual_control_%d'%self.Camera_control_num, Int8MultiArray, queue_size=1)
         my_msg = Int8MultiArray()
-        my_msg.data = [0, y]
-        pub.publish(my_msg)
-
-    def Manual_Down(self):
-        y = -1
-        pub = rospy.Publisher('manual_control%d'%self.Camera_control_num, Int8MultiArray, queue_size=1)
-        my_msg = Int8MultiArray()
-        my_msg.data = [0, y]
-        pub.publish(my_msg)
-
-    def Manual_Right(self):
-        x = 1
-        pub = rospy.Publisher('manual_control%d'%self.Camera_control_num, Int8MultiArray, queue_size=1)
-        my_msg = Int8MultiArray()
-        my_msg.data = [x, 0]
-        pub.publish(my_msg)
-
-    def Manual_Left(self):
-        x = -1
-        pub = rospy.Publisher('manual_control%d'%self.Camera_control_num, Int8MultiArray, queue_size=1)
-        my_msg = Int8MultiArray()
-        my_msg.data = [x, 0]
+        my_msg.data = [x, y]
         pub.publish(my_msg)
 
     def keyPressEvent(self, k):
         if k.key() == Qt.Key_Escape:
             self.close()
         elif k.key() == Qt.Key_Up:
-            self.Manual_Up()
+           self.Manual(1)
         elif k.key() == Qt.Key_Down:
-            self.Manual_Down()
+            self.Manual(2)
         elif k.key() == Qt.Key_Right:
-            self.Manual_Right()
+            self.Manual(3)
         elif k.key() == Qt.Key_Left:
-            self.Manual_Left()
+            self.Manual(4)
 
 class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):    # Only Cam
     def __init__(self, camera):
@@ -725,7 +715,7 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
 
         for (x,y,w,h) in faces:
             cv2.rectangle(self.cv_image,(x,y),(x+w,y+h),(0,255,0),1)
-            pub = rospy.Publisher('Servo_Cam%d' % self.camera, UInt16MultiArray, queue_size=1)
+            pub = rospy.Publisher('servo_controller_%d' % self.camera, UInt16MultiArray, queue_size=1)
             self.my_msg = UInt16MultiArray()
             self.my_msg.data = [x,y,w,h]
             pub.publish(self.my_msg)

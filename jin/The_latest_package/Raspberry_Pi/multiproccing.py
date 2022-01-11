@@ -31,7 +31,7 @@ class Cam_Publisher():
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
         cap.set(cv2.CAP_PROP_FPS, 20)    
-        rospy.init_node("webcam_pub", anonymous=True)
+        rospy.init_node("cam_pub", anonymous=True)
         image_pub = rospy.Publisher("cam_num%s" % Camera_number, Image, queue_size=1)
 
         bridge = CvBridge()
@@ -50,12 +50,10 @@ class Servo_Subscriber():
         
         self.servo_x = 320
         self.servo_y = 390
-        pwm.set_pwm(1, 0, self.servo_x)
-        pwm.set_pwm(0, 0, self.servo_y)
+
         rospy.spin()
    
     def callback(self, servo_msg):
-        print(servo_msg)
         x = servo_msg.data[0]
         y = servo_msg.data[1]
         w = servo_msg.data[2]
@@ -85,10 +83,9 @@ class Manual_Subscriber():
         rospy.init_node('manual_subs', anonymous=True)
         self._Manual_subs = rospy.Subscriber('/manual_control_%s' % Camera_number, Int8MultiArray, self.callback1, queue_size=1)
         
-        self.servo_x = 320   # servo_x defalt position
+        self.servo_x = 320 
         self.servo_y = 390
-        pwm.set_pwm(1, 0, self.servo_x)
-        pwm.set_pwm(0, 0, self.servo_y)
+
         rospy.spin()
 
     def callback1(self, manual_msg):
