@@ -27,6 +27,10 @@ def set_servo_pulse(channel, pulse):
 
 class Cam_Publisher():
     def cam_pub(self):
+        cap = cv2.VideoCapture(0)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+        cap.set(cv2.CAP_PROP_FPS, 20)    
         rospy.init_node("webcam_pub", anonymous=True)
         image_pub = rospy.Publisher("cam_num%s" % Camera_number, Image, queue_size=1)
 
