@@ -11,7 +11,7 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import UInt16MultiArray, Int8MultiArray
 from time import sleep
 
-class Background_Set():                                     # 배경화면 셋팅
+class Background_Set():                                                 # 배경화면 셋팅
     def background_set(self):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         
@@ -20,8 +20,8 @@ class Background_Set():                                     # 배경화면 셋�
         self.setAutoFillBackground(True)
         self.setPalette(pal)
 
-class LoginForm(QtWidgets.QDialog, Background_Set):         # 로그인 화면
-    def __init__(self):                             # 로그인 화면 셋팅
+class LoginForm(QtWidgets.QDialog, Background_Set):                     # 로그인 화면
+    def __init__(self):                                 # 로그인 화면 셋팅
         super(LoginForm, self).__init__()
         
         self.background_set()
@@ -72,7 +72,7 @@ class LoginForm(QtWidgets.QDialog, Background_Set):         # 로그인 화면
         global Position
         Position = self.qr.topRight()
 
-    def check_password(self):
+    def check_password(self):                           # ID, PW 확인
         msg = QtWidgets.QMessageBox()
 
         if self.lineEdit_username.text() == 'choi3206' and self.lineEdit_password.text() == '0608':
@@ -97,12 +97,12 @@ class LoginForm(QtWidgets.QDialog, Background_Set):         # 로그인 화면
         elif e.key() == Qt.Key_Escape:
             self.close()        
 
-class MainWindow(QtWidgets.QMainWindow, Background_Set):    # 기능선택 화면
-    def __init__(self):
+class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능선택 화면
+    def __init__(self):                                 
         super(MainWindow, self).__init__()
         self.initUI()
         
-    def initUI(self):
+    def initUI(self):                                   # 기능선택 화면 셋팅
         global Main_width
         global Main_height
 
@@ -138,7 +138,7 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):    # 기능선택 화�
     
         self.show()                                 # MainWindow 창 띄움
 
-    def setToolBar(self):                           # 툴바 셋팅
+    def setToolBar(self):                               # 툴바 셋팅
         exitAction = QtWidgets.QAction(
             QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Toolbar/exit.png'), 'Exit', self)   # 툴바 아이콘 이미지 삽입
         exitAction.setShortcut('Ctrl+Q')            # 툴바 단축키 설정
@@ -180,7 +180,7 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):    # 기능선택 화�
         self.toolbar.addAction(logoutAction)
         self.toolbar.addAction(exitAction)
 
-    def ComboBoxInit(self):                         # ComboBox 초기화
+    def ComboBoxInit(self):                             # ComboBox 초기화
         self.cb.clear()                             # ComboBox 모두 지우기
         self.cam_num = 0
         combo_num = 2                               # ComboBox 생성 갯수
@@ -191,7 +191,7 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):    # 기능선택 화�
             combo_init += 1
             self.cb.addItem('Camera%d' % combo_init) 
 
-    def Insert_Train(self):
+    def Insert_Train(self):                             # Train 파일 오픈
         self.filePath.clear()
         global path1
         path1 = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', '', 'xml File(*.xml)')
@@ -201,7 +201,7 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):    # 기능선택 화�
         else:
             self.train = 1
     
-    def Insert_Video(self):
+    def Insert_Video(self):                             # Video 파일 오픈
         global path
         path = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', '', 'mp4 File(*.mp4)')
         self.videoPath.setText(path[0])
@@ -212,7 +212,7 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):    # 기능선택 화�
             self.cam_select = 0
             self.ComboBoxInit()
     
-    def Logout(self):
+    def Logout(self):                                   # Logout 기능
         self.logout = LoginForm() 
         self.close()
         if self.logout_signal == 1:
@@ -220,7 +220,7 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):    # 기능선택 화�
         else:
             self.show()
             
-    def Select_Cam(self, cam_num):
+    def Select_Cam(self, cam_num):                      # Cam 선택 및 초기화
         self.videoPath.clear()
         if cam_num == 'Select Camera...':
             self.cam_select = 0
@@ -229,7 +229,7 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):    # 기능선택 화�
             self.cam_num = int(self.cam_num)
             self.cam_select = 1            
     
-    def Start_btn(self):
+    def Start_btn(self):                                # 기능 실행
         self.filePath.clear()
         if self.cam_select == 1 and self.train == 1: 
             print('Train_Cam')
@@ -263,8 +263,8 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):    # 기능선택 화�
         if e.key() == Qt.Key_Escape:
             self.close()
 
-class Cam_Btn_Set():                                        # Cam 조작 화면 버튼
-    def cam_btn_set(self, camera):
+class Cam_Btn_Set():                                                    # Cam 조작 화면 버튼
+    def cam_btn_set(self, camera):                      # Cam 조작 버튼 셋팅
         self.Camera_contol_num = camera
         
         self.button_Auto = QtWidgets.QPushButton('Auto', self)
@@ -303,11 +303,11 @@ class Cam_Btn_Set():                                        # Cam 조작 화면 
         self.button_Stop.setEnabled(False)
         self.now = datetime.datetime.now().strftime("MST_CAP-%Y-%m-%d-%H:%M:%S")
 
-    def camera_cap(self):
+    def camera_cap(self):                               # Cam 캡쳐 기능
         print('Capture file save : ' + '/home/jin/mst/jin/The_latest_package/Storage_camera/')
         cv2.imwrite("/home/jin/mst/jin/The_latest_package/Storage_camera/" + str(self.now) + ".png", self.cv_image)
 
-    def rec_strat(self):
+    def rec_strat(self):                                # Cam 녹화 시작
         self.button_REC.setEnabled(False)
         self.button_Stop.setEnabled(True)
         print('Recording Start!')
@@ -315,7 +315,7 @@ class Cam_Btn_Set():                                        # Cam 조작 화면 
         self.video = cv2.VideoWriter("/home/jin/mst/jin/The_latest_package/Storage_camera/" + str(self.now) + ".avi", self.fourcc, 20.0, (self.img.shape[1], self.img.shape[0]))        
         self.button_REC.setText("REC...")
 
-    def rec_stop(self):
+    def rec_stop(self):                                 # Cam 녹화 중지
         self.button_REC.setEnabled(True)
         self.button_Stop.setEnabled(False)
         print('Record file save : '+ '/home/jin/mst/jin/The_latest_package/Storage_camera/')
@@ -323,7 +323,7 @@ class Cam_Btn_Set():                                        # Cam 조작 화면 
         self.video.release()
         self.button_REC.setText("REC")
 
-    def controller_open(self):
+    def controller_open(self):                          # Cam 수동조작 화면 오픈
         if self.manual == 1:
             self.button_Auto.setText("Manual")
             self.control = Camera_Control(self.Camera_contol_num)
@@ -342,8 +342,81 @@ class Cam_Btn_Set():                                        # Cam 조작 화면 
             self.finder.close()
             self.close()
 
-class Video_Btn_Set():                                      # Video 조작 화면 버튼
-    def video_btn_set(self):        
+class Camera_Control(QtWidgets.QDialog, Background_Set):                # Cam 수동조작 & 방향키
+    def __init__(self, Camera_control_num):             # Cam 수동조작 화면 셋팅
+        super(Camera_Control, self).__init__()
+        self.background_set()
+        
+        self.Camera_control_num = Camera_control_num
+        print('Cam_Control_Num : %d' % self.Camera_control_num)
+
+        height = 90
+        self.setFixedSize(Main_width, height)
+        self.setGeometry(Position.x(), Position.y()+520-height, Main_width, height)
+
+        self.button_Up = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/up.png'),'', self)
+        self.button_Up.resize(40, 40)
+        self.button_Up.move(67.5, 5)
+        self.button_Up.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Up.setFocusPolicy(Qt.NoFocus)
+        self.button_Up.clicked.connect(lambda:self.Manual(1))
+
+        self.button_Down = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/down.png'),'', self)
+        self.button_Down.resize(40, 40)
+        self.button_Down.move(67.5, 46)
+        self.button_Down.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Down.setFocusPolicy(Qt.NoFocus)
+        self.button_Down.clicked.connect(lambda:self.Manual(2))
+
+        self.button_Right = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/right.png'),'', self)
+        self.button_Right.resize(40, 40)
+        self.button_Right.move(108, 46)
+        self.button_Right.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Right.setFocusPolicy(Qt.NoFocus)
+        self.button_Right.clicked.connect(lambda:self.Manual(3))
+
+        self.button_Left = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/left.png'),'', self)
+        self.button_Left.resize(40, 40)
+        self.button_Left.move(26.5, 46)
+        self.button_Left.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Left.setFocusPolicy(Qt.NoFocus)
+        self.button_Left.clicked.connect(lambda:self.Manual(4))
+
+        self.show()
+
+    def Manual(self, args):                             # Cam 수동조작 Topic 발행
+        self.args = args
+        x = 0
+        y = 0
+        
+        if self.args == 1:
+            x, y = 0, 1
+        elif self.args == 2:
+            x, y = 0, -1
+        elif self.args == 3:
+            x, y = 1, 0
+        elif self.args == 4:
+            x, y = -1, 0       
+ 
+        pub = rospy.Publisher('manual_control_%d'%self.Camera_control_num, Int8MultiArray, queue_size=1)
+        my_msg = Int8MultiArray()
+        my_msg.data = [x, y]
+        pub.publish(my_msg)
+
+    def keyPressEvent(self, k):                         # Cam 키보드 조작
+        if k.key() == Qt.Key_Escape:
+            self.close()
+        elif k.key() == Qt.Key_Up:
+           self.Manual(1)
+        elif k.key() == Qt.Key_Down:
+            self.Manual(2)
+        elif k.key() == Qt.Key_Right:
+            self.Manual(3)
+        elif k.key() == Qt.Key_Left:
+            self.Manual(4)
+
+class Video_Btn_Set():                                                  # Video 조작 화면 버튼
+    def video_btn_set(self):                            # Video 조작 버튼 셋팅
         self.button_Cap = QtWidgets.QPushButton('Capture', self)
         self.button_Cap.resize(65, 30)
         self.button_Cap.move(360, 485)
@@ -373,11 +446,11 @@ class Video_Btn_Set():                                      # Video 조작 화�
         self.button_Stop.setEnabled(False)                  # 녹화 유무 변수 초기화
         self.now = datetime.datetime.now().strftime("MST_CAP-%Y-%m-%d-%H:%M:%S")
 
-    def video_cap(self):
+    def video_cap(self):                                # Video 캡쳐 기능
         print('Capture file save : ' + '/home/jin/mst/jin/The_latest_package/Storage_video/')
         cv2.imwrite("/home/jin/mst/jin/The_latest_package/Storage_video/" + str(self.now) + ".png", self.frame)
 
-    def rec_strat(self):
+    def rec_strat(self):                                # Video 녹화 시작
         self.button_REC.setEnabled(False)
         self.button_Stop.setEnabled(True)
         print('Recording Start!')
@@ -385,7 +458,7 @@ class Video_Btn_Set():                                      # Video 조작 화�
         self.video = cv2.VideoWriter("/home/jin/mst/jin/The_latest_package/Storage_video/" + str(self.now) + ".avi", self.fourcc, 30.0, (self.frame.shape[1], self.frame.shape[0]))        
         self.button_REC.setText("REC...")
 
-    def rec_stop(self):
+    def rec_stop(self):                                 # Video 녹화 중지
         self.button_REC.setEnabled(True)
         self.button_Stop.setEnabled(False)
         print('Record file save : '+ '/home/jin/mst/jin/The_latest_package/Storage_video/')
@@ -397,7 +470,7 @@ class Video_Btn_Set():                                      # Video 조작 화�
         self.finder.close()
         self.close()
 
-class Tracking_Finder(QtWidgets.QDialog, Background_Set):   # Cam 수동조작 & 방향키
+class Tracking_Finder(QtWidgets.QDialog, Background_Set):               # 객체 인식시 로그 발생창
     def __init__(self):
         super(Tracking_Finder, self).__init__()
         self.background_set()
@@ -414,8 +487,8 @@ class Tracking_Finder(QtWidgets.QDialog, Background_Set):   # Cam 수동조작 &
 
         self.show()
 
-class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only Video
-    def __init__(self):
+class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only Video 조작 화면
+    def __init__(self):                                 # Video 화면 셋팅
         super(Normal_Video, self).__init__()
         self.background_set()
         
@@ -434,7 +507,7 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only V
         self.show()
         self.video_convert()
 
-    def video_convert(self):
+    def video_convert(self):                            # Video 데이터 Qt 데이터로 변환
         self.cap = cv2.VideoCapture(path[0])
         self.video_speed = 0.01                             # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
 
@@ -481,8 +554,8 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only V
                 self.finder.close()
                 self.close()
 
-class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):    # Train & Video
-    def __init__(self):
+class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train & Video 조작 화면
+    def __init__(self):                                 # Train & Video 화면 셋팅
         super(Tracking_Video, self).__init__()
         self.background_set()
         
@@ -500,7 +573,7 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):    # Tra
         self.show()
         self.video_convert()
 
-    def video_convert(self):
+    def video_convert(self):                            # Video 데이터 Qt 데이터로 변환
         self.cap = cv2.VideoCapture(path[0])
         self.video_speed = 0.01 # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
         faceCascade = cv2.CascadeClassifier(path1[0])
@@ -550,81 +623,8 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):    # Tra
                 self.finder.close()
                 self.close()
 
-class Camera_Control(QtWidgets.QDialog, Background_Set):    # Cam 수동조작 & 방향키
-    def __init__(self, Camera_control_num):
-        super(Camera_Control, self).__init__()
-        self.background_set()
-        
-        self.Camera_control_num = Camera_control_num
-        print('Cam_Control_Num : %d' % self.Camera_control_num)
-
-        height = 90
-        self.setFixedSize(Main_width, height)
-        self.setGeometry(Position.x(), Position.y()+520-height, Main_width, height)
-
-        self.button_Up = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/up.png'),'', self)
-        self.button_Up.resize(40, 40)
-        self.button_Up.move(67.5, 5)
-        self.button_Up.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_Up.setFocusPolicy(Qt.NoFocus)
-        self.button_Up.clicked.connect(lambda:self.Manual(1))
-
-        self.button_Down = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/down.png'),'', self)
-        self.button_Down.resize(40, 40)
-        self.button_Down.move(67.5, 46)
-        self.button_Down.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_Down.setFocusPolicy(Qt.NoFocus)
-        self.button_Down.clicked.connect(lambda:self.Manual(2))
-
-        self.button_Right = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/right.png'),'', self)
-        self.button_Right.resize(40, 40)
-        self.button_Right.move(108, 46)
-        self.button_Right.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_Right.setFocusPolicy(Qt.NoFocus)
-        self.button_Right.clicked.connect(lambda:self.Manual(3))
-
-        self.button_Left = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/left.png'),'', self)
-        self.button_Left.resize(40, 40)
-        self.button_Left.move(26.5, 46)
-        self.button_Left.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_Left.setFocusPolicy(Qt.NoFocus)
-        self.button_Left.clicked.connect(lambda:self.Manual(4))
-
-        self.show()
-
-    def Manual(self, args):
-        self.args = args
-        x = 0
-        y = 0
-        
-        if self.args == 1:
-            x, y = 0, 1
-        elif self.args == 2:
-            x, y = 0, -1
-        elif self.args == 3:
-            x, y = 1, 0
-        elif self.args == 4:
-            x, y = -1, 0       
- 
-        pub = rospy.Publisher('manual_control_%d'%self.Camera_control_num, Int8MultiArray, queue_size=1)
-        my_msg = Int8MultiArray()
-        my_msg.data = [x, y]
-        pub.publish(my_msg)
-
-    def keyPressEvent(self, k):
-        if k.key() == Qt.Key_Escape:
-            self.close()
-        elif k.key() == Qt.Key_Up:
-           self.Manual(1)
-        elif k.key() == Qt.Key_Down:
-            self.Manual(2)
-        elif k.key() == Qt.Key_Right:
-            self.Manual(3)
-        elif k.key() == Qt.Key_Left:
-            self.Manual(4)
-
-class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):    # Only Cam
-    def __init__(self, camera):
+class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):    # Only Cam 조작 화면
+    def __init__(self, camera):                         # Only Cam 화면 셋팅 및 Cam데이터 Subs
         super(Normal_Camera, self).__init__()
         self.background_set()
 
@@ -647,7 +647,7 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):    # Only C
         self.cam_btn_set(camera)
         self.show()    
 
-    def callback(self, data):  
+    def callback(self, data):                           # Cam 데이터 Qt 변환
         self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         
         if self.record == True:
@@ -683,8 +683,8 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):    # Only C
                 self.finder.close()
                 self.close()
 
-class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train & Video
-    def __init__(self, camera):
+class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train & Video 조작 화면
+    def __init__(self, camera):                         # Train & Video 화면 셋팅 및 Cam데이터 Subs
         super(Tracking_Camera, self).__init__()
         self.background_set()
         
@@ -706,7 +706,7 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         self.cam_btn_set(camera)
         self.show()      
 
-    def callback(self, data):  
+    def callback(self, data):                           # Cam 데이터 Qt 데이터로 변환 및 객체 인식에 따른 모터 구동 Pub
         self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         # if path1[0] == '':        # Tracking cam 중단
             # exit()            
