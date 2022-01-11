@@ -4,26 +4,14 @@ from std_msgs.msg import UInt16MultiArray, Int8MultiArray
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
-global Camera_number
-Camera_number = '1'
 
 
-pwm = Adafruit_PCA9685.PCA9685() 
-pwm.set_pwm_freq(60) 
 
-midScreenX = 320/2    # 화면 x축 중앙
-midScreenY = 240/2    # 화면 y축 중앙
-midScreenWindow = 17  # 객체를 인식한 사각형이 중앙에서 벗어날 수 있는 여유 값
 
-def set_servo_pulse(channel, pulse):
-    pulse_length = 1000000    # 1,000,000 us per second
-    pulse_length //= 60       # 60 Hz
-    print('{0}us per period'.format(pulse_length))
-    pulse_length //= 4096     # 12 bits of resolution
-    print('{0}us per bit'.format(pulse_length))
-    pulse *= 1000
-    pulse //= pulse_length
-    pwm.set_pwm(channel, 0, pulse)
+
+
+
+
 
 class Cam_Publisher():
     def __init__(self):
@@ -48,8 +36,6 @@ class Cam_Publisher():
 
 class Servo_Subscriber():
     def __init__(self):
-        rospy.init_node('Servo_Move')
-        self.main()
         self.Servo_subs = rospy.Subscriber('/servo_controller_%s' % Camera_number, UInt16MultiArray, self.callback, queue_size=1) # 객체인식 바운딩박스 x,y,w,h 토픽
         self._Manual_subs = rospy.Subscriber('/manual_control_%s' % Camera_number, Int8MultiArray, self.callback1, queue_size=1)
         self.servo_x = 320   # servo_x defalt position
@@ -111,3 +97,4 @@ class Servo_Subscriber():
 
 if __name__ == '__main__':
     node = Cam_Publisher()
+    rospy.init_node('Servo_Move')
