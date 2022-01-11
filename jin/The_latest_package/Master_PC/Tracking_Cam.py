@@ -33,7 +33,7 @@ class LoginForm(QtWidgets.QDialog, Background_Set):         # 로그인 화면
         logo_label = QtWidgets.QLabel(self)
         logo_label.resize(100, 100)
         logo_label.move(160, 5)
-        pixmap = QtGui.QPixmap('/home/jin/mst/jin/The_latest_package/image/Logo.png')
+        pixmap = QtGui.QPixmap('/home/jin/mst/jin/The_latest_package/Data/Image/Logo.png')
         logo_label.setPixmap(pixmap)
 
         self.label_name = QtWidgets.QLabel('<font size="2"> ID </font>', self)
