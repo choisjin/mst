@@ -26,7 +26,7 @@ def set_servo_pulse(channel, pulse):
     pwm.set_pwm(channel, 0, pulse)
 
 class Cam_Publisher():
-    def cam_pub(self):
+    def __call__(self):
         cap = cv2.VideoCapture(0)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
@@ -44,7 +44,7 @@ class Cam_Publisher():
         cv2.destroyAllWindows()
 
 class Servo_Subscriber():
-    def servo_sub(self):
+    def __call__(self):
         rospy.init_node('servo_subs', anonymous=True)
         self.Servo_subs = rospy.Subscriber('/servo_controller_%s' % Camera_number, UInt16MultiArray, self.callback, queue_size=1)
         
@@ -81,7 +81,7 @@ class Servo_Subscriber():
             pwm.set_pwm(0, 0, self.servo_y) 
 
 class Manual_Subscriber():
-    def manual_sum(self): 
+    def __call__(self): 
         rospy.init_node('manual_subs', anonymous=True)
         self._Manual_subs = rospy.Subscriber('/manual_control_%s' % Camera_number, Int8MultiArray, self.callback1, queue_size=1)
         
