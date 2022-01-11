@@ -596,6 +596,7 @@ class Camera_Control(QtWidgets.QDialog, Background_Set):    # Cam 수동조작 &
         self.args = args
         x = 0
         y = 0
+        
         if self.args == 1:
             x, y = 0, 1
         elif self.args == 2:

@@ -110,15 +110,21 @@ class Manual_Subscriber():
         elif self.servo_y1 == -1:
             self.servo_y += 1
             pwm.set_pwm(0, 0, self.servo_y)
+try:
+    p1 = Process(target = Cam_Publisher())
+    p2 = Process(target = Servo_Subscriber())
+    p3 = Process(target = Manual_Subscriber())
 
-p1 = Process(target = Cam_Publisher())
-p2 = Process(target = Servo_Subscriber())
-p3 = Process(target = Manual_Subscriber())
+    p1.start()
+    p2.start()
+    p3.start()
 
-p1.start()
-p2.start()
-p3.start()
+except KeyboardInterrupt:
+    print("Ctrl + C")
 
-p1.join()
-p2.join()
-p3.join()
+finally:
+    p1.join()
+    p2.join()
+    p3.join()
+
+    print("exit program")
