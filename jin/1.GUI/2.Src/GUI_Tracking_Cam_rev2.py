@@ -4,16 +4,12 @@ from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import Qt
 
 # Topic통신 관련 모듈
-import os, sys
-import rospy, cv2
-import cv2
+import os, sys, rospy, cv2, datetime
 import numpy as np
-
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from std_msgs.msg import UInt16MultiArray, Int8MultiArray
 from time import sleep
-import datetime
 
 class Background_Set():                                     # 배경화면 셋팅
     def background_set(self):
@@ -122,19 +118,19 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):    # 기능선택 화�
         Path_width = 165
         Path_height = 30
         
-    # Train파일 경로 출력
+        # Train파일 경로 출력
         self.filePath = QtWidgets.QLineEdit(self)
         self.filePath.resize(Path_width, Path_height)
         self.filePath.setPlaceholderText('Train file name...')
         self.filePath.move(5, 75)
 
-    # Video파일 경로 출력
+        # Video파일 경로 출력
         self.videoPath = QtWidgets.QLineEdit(self)
         self.videoPath.resize(Path_width, Path_height)
         self.videoPath.setPlaceholderText('Video file name...')
         self.videoPath.move(5, 110)
 
-    # 카메라선택 ComboBox
+        # 카메라선택 ComboBox
         self.cb = QtWidgets.QComboBox(self)
         self.cb.resize(Path_width, Path_height)
         self.cb.move(5, 40)
@@ -274,17 +270,6 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):    # 기능선택 화�
         if e.key() == Qt.Key_Escape:
             self.close()
 
-class Capture_Rec():
-    def args(self):
-        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')       # 인코딩 방식 설정 FourCC(Four Character Code)
-        self.record = False         # 녹화 유무 변수 초기화
-
-    def image_cap(self):
-        print('Image Capture!')
-        
-    def cam_rec(self):
-        print('Video Capture!')
-
 class Cam_Btn_Set():                                        # Cam 조작 화면 버튼
     def cam_btn_set(self, camera):
         self.Camera_contol_num = camera
@@ -319,20 +304,20 @@ class Cam_Btn_Set():                                        # Cam 조작 화면 
         self.button_Exit.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Exit.clicked.connect(self.exit_cam)
 
-        self.manual = 0
+        self.manual = 1
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')         # 인코딩 방식 설정 FourCC(Four Character Code)
         self.record = False                                   # 녹화 유무 변수 초기화
         self.now = datetime.datetime.now().strftime("MST_CAP-%Y-%m-%d-%H:%M:%S")
 
     def camera_cap(self):
-        print('Video Capture!')
-        cv2.imwrite("/home/jin/mst/jin/1.GUI/2.Src/PyQt5_Tutorial/Capture_Video/" + str(self.now) + ".png", self.frame)
+        print('Camera Capture!')
+        cv2.imwrite("/home/jin/mst/jin/1.GUI/2.Src/Capture_Camera/" + str(self.now) + ".png", self.cv_image)
 
     def rec_strat(self):
         self.button_REC.setEnabled(False)
         print('Recording Start!')
         self.record = True
-        self.video = cv2.VideoWriter("/home/jin/mst/jin/1.GUI/2.Src/Recording_Video/" + str(self.now) + ".avi", self.fourcc, 30.0, (self.frame.shape[1], self.frame.shape[0]))        
+        self.video = cv2.VideoWriter("/home/jin/mst/jin/1.GUI/2.Src/Recording_Camera/" + str(self.now) + ".avi", self.fourcc, 20.0, (self.img.shape[1], self.img.shape[0]))        
         self.button_REC.setText("REC...")
 
     def rec_stop(self):
@@ -343,24 +328,25 @@ class Cam_Btn_Set():                                        # Cam 조작 화면 
         self.button_REC.setText("REC")
 
     def controller_open(self):
-        self.button_Auto.setText("Manual")
-        self.control = Camera_Control(self.Camera_contol_num)
-        self.manual = 1
-        self.button_Auto.clicked.connect(self.controller_close)
-
-    def controller_close(self):
-        self.button_Auto.setText("Auto")
-        self.control.close()
-        self.button_Auto.clicked.connect(self.controller_open)
+        if self.manual == 1:
+            self.button_Auto.setText("Manual")
+            self.control = Camera_Control(self.Camera_contol_num)
+            self.manual = 0
+        else:
+            self.button_Auto.setText("Auto")
+            self.control.close()
+            self.manual = 1
 
     def exit_cam(self):
-        if self.manual == 1:
-            self.close()
+        if self.manual == 0:
             self.control.close()
+            self.finder.close()
+            self.close()
         else:
+            self.finder.close()
             self.close()
 
-class Video_Btn_Set():                                        # Video 조작 화면 버튼
+class Video_Btn_Set():                                      # Video 조작 화면 버튼
     def video_btn_set(self):        
         self.button_Cap = QtWidgets.QPushButton('Capture', self)
         self.button_Cap.resize(65, 30)
@@ -392,7 +378,7 @@ class Video_Btn_Set():                                        # Video 조작 화
 
     def video_cap(self):
         print('Video Capture!')
-        cv2.imwrite("/home/jin/mst/jin/1.GUI/2.Src/PyQt5_Tutorial/Capture_Video/" + str(self.now) + ".png", self.frame)
+        cv2.imwrite("/home/jin/mst/jin/1.GUI/2.Src/Capture_Video/" + str(self.now) + ".png", self.frame)
 
     def rec_strat(self):
         self.button_REC.setEnabled(False)
@@ -409,25 +395,42 @@ class Video_Btn_Set():                                        # Video 조작 화
         self.button_REC.setText("REC")
 
     def exit_cam(self):
+        self.finder.close()
         self.close()
 
-class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):      # Only Video
+class Tracking_Finder(QtWidgets.QDialog, Background_Set):    # Cam 수동조작 & 방향키
+    def __init__(self):
+        super(Tracking_Finder, self).__init__()
+        self.background_set()
+
+        height = 250
+        
+        self.setFixedSize(Main_width, height)
+        self.setGeometry(Position.x(), Position.y()+Main_height+10, Main_width, height)
+
+        self.button_Up = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/Direction/up.png'),'', self)
+        self.button_Up.resize(40, 40)
+        self.button_Up.move(67.5, 5)
+        self.button_Up.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Up.setFocusPolicy(Qt.NoFocus)
+
+        self.show()
+
+class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only Video
     def __init__(self):
         super(Normal_Video, self).__init__()
-        self.setWindowTitle('Normal_Video')
         self.background_set()
+        
+        self.finder = Tracking_Finder()
+        self.finder.close()
 
         width = 640
         height = 480 + 40
         self.setFixedSize(width, height)
         self.setGeometry(Position.x()-width-10, Position.y(), width, height)
-
-        vbox = QtWidgets.QVBoxLayout()
         
         self.label = QtWidgets.QLabel(self)
         self.label.move(0,0)
-        
-        vbox.addWidget(self.label)
 
         self.video_btn_set()
         self.show()
@@ -439,9 +442,6 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):      # Onl
 
         while True:
             self.ret, self.frame = self.cap.read()  
-            
-            if self.record == True:
-                self.video.write(self.frame)            
             
             if not self.ret:
                 if self.record == True:
@@ -461,10 +461,13 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):      # Onl
             pixmap = pixmap.scaledToWidth(640)
             self.label.setPixmap(pixmap)
             sleep(self.video_speed)
-            cv2.waitKey(1)
 
+            if self.record == True:
+                self.video.write(self.frame)  
+            
+            cv2.waitKey(1)
+       
         self.cap.release()
-        cv2.destroyAllWindows()
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
@@ -473,16 +476,20 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):      # Onl
                 self.record = False
                 self.video.release()
                 self.cap.release()
+                self.finder.close()
                 self.close()
             else:
                 self.cap.release()
+                self.finder.close()
                 self.close()
 
-class Tracking_Video(QtWidgets.QDialog, Background_Set):    # Train & Video
+class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):    # Train & Video
     def __init__(self):
         super(Tracking_Video, self).__init__()
         self.background_set()
-
+        
+        self.finder = Tracking_Finder()
+        
         width = 640
         height = 480 + 40
         self.setFixedSize(width, height)
@@ -491,39 +498,59 @@ class Tracking_Video(QtWidgets.QDialog, Background_Set):    # Train & Video
         self.label = QtWidgets.QLabel(self)
         self.label.move(0,0)
 
-        self.show()  
-        self.video()
+        self.video_btn_set()
+        self.show()
+        self.video_convert()
 
-    def video(self):
+    def video_convert(self):
         self.cap = cv2.VideoCapture(path[0])
-        video_speed = 0.01 # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
+        self.video_speed = 0.01 # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
         faceCascade = cv2.CascadeClassifier(path1[0])
         while True:
-            self.ret, frame = self.cap.read()
-            faces = faceCascade.detectMultiScale(frame, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
+            self.ret, self.frame = self.cap.read()
+            faces = faceCascade.detectMultiScale(self.frame, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
             
             if not self.ret:
-                self.close()
+                if self.record == True:
+                    print('Recording Stop!')
+                    self.record = False
+                    self.video.release()
+                    self.close()
+                else:
+                    self.close()
                 break
+            
             for (x,y,w,h) in faces:
-                cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),1)      
+                cv2.rectangle(self.frame,(x,y),(x+w,y+h),(0,255,0),1)      
+            
+            if self.record == True:
+                self.video.write(self.frame)
             
             self.label.resize(640, 480)
-            img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            img = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
             h,w,c = img.shape
             qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
             pixmap = QtGui.QPixmap.fromImage(qImg)
             pixmap = pixmap.scaledToWidth(640)
             self.label.setPixmap(pixmap)
-            
-            sleep(video_speed) 
-            cv2.waitKey(0)
+            sleep(self.video_speed)
+            cv2.waitKey(1)
         
         self.cap.release()
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
-            self.cap.release()
+            if self.record == True:
+                print('Recording Stop!')
+                self.record = False
+                self.video.release()
+                self.cap.release()
+                self.finder.close()
+                self.close()
+            else:
+                self.cap.release()
+                self.finder.close()
+                self.close()
 
 class Camera_Control(QtWidgets.QDialog, Background_Set):    # Cam 수동조작 & 방향키
     def __init__(self, Camera_control_num):
@@ -535,7 +562,7 @@ class Camera_Control(QtWidgets.QDialog, Background_Set):    # Cam 수동조작 &
 
         height = 90
         self.setFixedSize(Main_width, height)
-        self.setGeometry(Position.x(), Position.y()+Main_height+10, Main_width, height)
+        self.setGeometry(Position.x(), Position.y()+520-height, Main_width, height)
 
         self.button_Up = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/Direction/up.png'),'', self)
         self.button_Up.resize(40, 40)
@@ -612,6 +639,9 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):    # Only C
         super(Normal_Camera, self).__init__()
         self.background_set()
 
+        self.finder = Tracking_Finder()
+        self.finder.close()
+        
         self.camera=camera  
         self._sub = rospy.Subscriber('/camera%s/usb_cam%s/image_raw' % (str(camera), str(camera)), Image, self.callback, queue_size=1)
         
@@ -629,39 +659,47 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):    # Only C
         self.show()    
 
     def callback(self, data):  
-        try:
-            self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-        except CvBridgeError as e:
-            print(e)
+        self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         
-        self.ret = self.cv_image in self.bridge.imgmsg_to_cv2(data, "bgr8")
-
-        if not self.ret == False:
-            print(self.cv_image)
-        else :
-            print('None')
-
         if self.record == True:
             self.video.write(self.cv_image)
-
+        
         self.label.resize(640, 480)
-        img = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB) 
-        img = cv2.flip(img, 1)
-        h,w,c = img.shape
-        qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
+        self.img = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB) 
+        self.img = cv2.flip(self.img, 1)
+        h,w,c = self.img.shape
+        qImg = QtGui.QImage(self.img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
         pixmap = QtGui.QPixmap.fromImage(qImg)
         pixmap = pixmap.scaledToWidth(640)
         self.label.setPixmap(pixmap)
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
-            self.Exit_cam()
-            self.close()
+            if self.manual == 0 and self.record == True:
+                print('Recording Stop!')
+                self.record = False
+                self.control.close()
+                self.finder.close()
+                self.close() 
+            elif self.record == True:
+                print('Recording Stop!')
+                self.record = False
+                self.finder.close()
+                self.close() 
+            elif self.manual == 0:
+                self.control.close()
+                self.finder.close()
+                self.close()                
+            else:
+                self.finder.close()
+                self.close()
 
 class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train & Video
     def __init__(self, camera):
         super(Tracking_Camera, self).__init__()
         self.background_set()
+        
+        self.finder = Tracking_Finder()
 
         self.camera=camera  
         self._sub = rospy.Subscriber('/camera%s/usb_cam%s/image_raw' % (str(camera), str(camera)), Image, self.callback, queue_size=1)
@@ -677,38 +715,57 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         self.label.move(0,0)
         
         self.cam_btn_set(camera)
-
-        self.show()     
+        self.show()      
 
     def callback(self, data):  
-            self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-            # if path1[0] == '':        # Tracking cam 중단
-                # exit()            
-            faceCascade = cv2.CascadeClassifier(path1[0])
+        self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+        # if path1[0] == '':        # Tracking cam 중단
+            # exit()            
+        faceCascade = cv2.CascadeClassifier(path1[0])
 
-            self.cv_image = np.uint8(self.cv_image)
-            faces = faceCascade.detectMultiScale(self.cv_image, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
+        self.cv_image = np.uint8(self.cv_image)
 
-            for (x,y,w,h) in faces:
-                cv2.rectangle(self.cv_image,(x,y),(x+w,y+h),(0,255,0),1)
-                pub = rospy.Publisher('Servo_Cam%d' % self.camera, UInt16MultiArray, queue_size=1)
-                self.my_msg = UInt16MultiArray()
-                self.my_msg.data = [x,y,w,h]
-                pub.publish(self.my_msg)
-        
-            self.label.resize(640, 480)
-            img = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB) 
-            img = cv2.flip(img, 1)
-            img_h,img_w,img_c = img.shape
-            qImg = QtGui.QImage(img.data, img_w, img_h, img_w*img_c, QtGui.QImage.Format_RGB888)
-            pixmap = QtGui.QPixmap.fromImage(qImg)
-            pixmap = pixmap.scaledToWidth(640)
-            self.label.setPixmap(pixmap)
+        faces = faceCascade.detectMultiScale(self.cv_image, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
+
+        for (x,y,w,h) in faces:
+            cv2.rectangle(self.cv_image,(x,y),(x+w,y+h),(0,255,0),1)
+            pub = rospy.Publisher('Servo_Cam%d' % self.camera, UInt16MultiArray, queue_size=1)
+            self.my_msg = UInt16MultiArray()
+            self.my_msg.data = [x,y,w,h]
+            pub.publish(self.my_msg)
+
+        if self.record == True:    
+            self.video.write(self.cv_image)
+
+        self.label.resize(640, 480)
+        self.img = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB) 
+        self.img = cv2.flip(self.img, 1)
+        h,w,c = self.img.shape
+        qImg = QtGui.QImage(self.img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
+        pixmap = QtGui.QPixmap.fromImage(qImg)
+        pixmap = pixmap.scaledToWidth(640)
+        self.label.setPixmap(pixmap)
             
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
-            self.Exit_cam()
-            self.close()    
+            if self.manual == 0 and self.record == True:
+                print('Recording Stop!')
+                self.record = False
+                self.control.close()
+                self.finder.close()
+                self.close() 
+            elif self.record == True:
+                print('Recording Stop!')
+                self.record = False
+                self.finder.close()
+                self.close() 
+            elif self.manual == 0:
+                self.control.close()
+                self.finder.close()
+                self.close()                
+            else:
+                self.finder.close()
+                self.close() 
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
