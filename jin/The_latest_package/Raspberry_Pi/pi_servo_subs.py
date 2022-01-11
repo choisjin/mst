@@ -3,6 +3,10 @@ import rospy
 from std_msgs.msg import UInt16MultiArray, Int8MultiArray
 import Adafruit_PCA9685 
 
+global Camera_number
+Camera_number = '1'
+
+
 pwm = Adafruit_PCA9685.PCA9685() 
 pwm.set_pwm_freq(60) 
 
@@ -22,8 +26,8 @@ def set_servo_pulse(channel, pulse):
 
 class Servo_Subscriber():
     def __init__(self):
-        self.Servo_subs = rospy.Subscriber('/Servo_Cam2', UInt16MultiArray, self.callback, queue_size=1) # 객체인식 바운딩박스 x,y,w,h 토픽
-        self._Manual_subs = rospy.Subscriber('/manual_control2', Int8MultiArray, self.callback1, queue_size=1)
+        self.Servo_subs = rospy.Subscriber('/servo_controller_%s' % Camera_number, UInt16MultiArray, self.callback, queue_size=1) # 객체인식 바운딩박스 x,y,w,h 토픽
+        self._Manual_subs = rospy.Subscriber('/manual_control_%s' % Camera_number, Int8MultiArray, self.callback1, queue_size=1)
         self.servo_x = 320   # servo_x defalt position
         self.servo_y = 390
         pwm.set_pwm(1, 0, self.servo_x)
