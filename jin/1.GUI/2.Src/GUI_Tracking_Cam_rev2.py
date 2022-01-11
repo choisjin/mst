@@ -21,20 +21,19 @@ class Background_Set():                                     # 배경화면 셋�
         self.setPalette(pal)
 
 class LoginForm(QtWidgets.QDialog, Background_Set):         # 로그인 화면
-    def __init__(self):                     # 로그인 화면 셋팅
+    def __init__(self):                             # 로그인 화면 셋팅
         super(LoginForm, self).__init__()
         
         self.background_set()
         
         width = 265
         height = 110
-        
         self.setFixedSize(width, height)
 
         logo_label = QtWidgets.QLabel(self)
         logo_label.resize(100, 100)
         logo_label.move(160, 5)
-        pixmap = QtGui.QPixmap('/home/jin/mst/jin/1.GUI/2.Src/icon/Finder_baby.png')
+        pixmap = QtGui.QPixmap('/home/jin/mst/jin/The_latest_package/image/Logo.png')
         logo_label.setPixmap(pixmap)
 
         self.label_name = QtWidgets.QLabel('<font size="2"> ID </font>', self)
@@ -117,24 +116,19 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):    # 기능선택 화�
 
         Path_width = 165
         Path_height = 30
-        
-        # Train파일 경로 출력
-        self.filePath = QtWidgets.QLineEdit(self)
+        self.filePath = QtWidgets.QLineEdit(self)   # Train파일 경로 출력
         self.filePath.resize(Path_width, Path_height)
         self.filePath.setPlaceholderText('Train file name...')
         self.filePath.move(5, 75)
 
-        # Video파일 경로 출력
-        self.videoPath = QtWidgets.QLineEdit(self)
+        self.videoPath = QtWidgets.QLineEdit(self)  # Video파일 경로 출력
         self.videoPath.resize(Path_width, Path_height)
         self.videoPath.setPlaceholderText('Video file name...')
         self.videoPath.move(5, 110)
 
-        # 카메라선택 ComboBox
-        self.cb = QtWidgets.QComboBox(self)
+        self.cb = QtWidgets.QComboBox(self)         # 카메라선택 ComboBox
         self.cb.resize(Path_width, Path_height)
         self.cb.move(5, 40)
-        #self.DataReset()
         self.ComboBoxInit()
         self.cb.activated[str].connect(self.Select_Cam)
 
@@ -146,31 +140,31 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):    # 기능선택 화�
 
     def setToolBar(self):                           # 툴바 셋팅
         exitAction = QtWidgets.QAction(
-            QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/exit.png'), 'Exit', self)   # 툴바 아이콘 이미지 삽입
+            QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Toolbar/exit.png'), 'Exit', self)   # 툴바 아이콘 이미지 삽입
         exitAction.setShortcut('Ctrl+Q')            # 툴바 단축키 설정
         exitAction.setStatusTip('Exit')             # 상태창 메세지
         exitAction.setToolTip('Ctrl+Q')             # 툴팁 메세지
         exitAction.triggered.connect(self.close)    # 툴바 클릭시 발생 이벤트
 
-        logoutAction = QtWidgets.QAction(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/logout.png'), 'Logout', self)
+        logoutAction = QtWidgets.QAction(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Toolbar/logout.png'), 'Logout', self)
         logoutAction.setShortcut('Ctrl+L')
         logoutAction.setStatusTip('Logout')
         logoutAction.setToolTip('Ctrl+L')
         logoutAction.triggered.connect(self.Logout)
 
-        trainAction = QtWidgets.QAction(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/train_open.png'), 'Train', self)
+        trainAction = QtWidgets.QAction(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Toolbar/train_open.png'), 'Train', self)
         trainAction.setShortcut('Ctrl+T')
         trainAction.setStatusTip('Train File Open')
         trainAction.setToolTip('Ctrl+T')
         trainAction.triggered.connect(self.Insert_Train)
         
-        videoAction = QtWidgets.QAction(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/video_open.png'), 'Video', self)
+        videoAction = QtWidgets.QAction(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Toolbar/video_open.png'), 'Video', self)
         videoAction.setShortcut('Ctrl+O')
         videoAction.setStatusTip('Video File Open')
         videoAction.setToolTip('Ctrl+O')
         videoAction.triggered.connect(self.Insert_Video)        
         
-        stratAction = QtWidgets.QAction(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/play.png'), 'Start', self)
+        stratAction = QtWidgets.QAction(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Toolbar/play.png'), 'Start', self)
         stratAction.setShortcut('Ctrl+S')
         stratAction.setStatusTip('Start Application')
         stratAction.setToolTip('Ctrl+S')
@@ -219,8 +213,7 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):    # 기능선택 화�
             self.ComboBoxInit()
     
     def Logout(self):
-        self.logout = LoginForm()
-        
+        self.logout = LoginForm() 
         self.close()
         if self.logout_signal == 1:
             self.logout.show()
@@ -307,22 +300,25 @@ class Cam_Btn_Set():                                        # Cam 조작 화면 
         self.manual = 1
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')         # 인코딩 방식 설정 FourCC(Four Character Code)
         self.record = False                                   # 녹화 유무 변수 초기화
+        self.button_Stop.setEnabled(False)
         self.now = datetime.datetime.now().strftime("MST_CAP-%Y-%m-%d-%H:%M:%S")
 
     def camera_cap(self):
-        print('Camera Capture!')
-        cv2.imwrite("/home/jin/mst/jin/1.GUI/2.Src/Capture_Camera/" + str(self.now) + ".png", self.cv_image)
+        print('Capture file save : ' + '/home/jin/mst/jin/The_latest_package/Storage_camera/')
+        cv2.imwrite("/home/jin/mst/jin/The_latest_package/Storage_camera/" + str(self.now) + ".png", self.cv_image)
 
     def rec_strat(self):
         self.button_REC.setEnabled(False)
+        self.button_Stop.setEnabled(True)
         print('Recording Start!')
         self.record = True
-        self.video = cv2.VideoWriter("/home/jin/mst/jin/1.GUI/2.Src/Recording_Camera/" + str(self.now) + ".avi", self.fourcc, 20.0, (self.img.shape[1], self.img.shape[0]))        
+        self.video = cv2.VideoWriter("/home/jin/mst/jin/The_latest_package/Storage_camera/" + str(self.now) + ".avi", self.fourcc, 20.0, (self.img.shape[1], self.img.shape[0]))        
         self.button_REC.setText("REC...")
 
     def rec_stop(self):
         self.button_REC.setEnabled(True)
-        print('Recording Stop!')
+        self.button_Stop.setEnabled(False)
+        print('Record file save : '+ '/home/jin/mst/jin/The_latest_package/Storage_camera/)')
         self.record = False
         self.video.release()
         self.button_REC.setText("REC")
@@ -372,24 +368,27 @@ class Video_Btn_Set():                                      # Video 조작 화�
         self.button_Exit.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Exit.clicked.connect(self.exit_cam)
 
-        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')         # 인코딩 방식 설정 FourCC(Four Character Code)
-        self.record = False                                   # 녹화 유무 변수 초기화
+        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')       # 인코딩 방식 설정 FourCC(Four Character Code)
+        self.record = False 
+        self.button_Stop.setEnabled(False)                  # 녹화 유무 변수 초기화
         self.now = datetime.datetime.now().strftime("MST_CAP-%Y-%m-%d-%H:%M:%S")
 
     def video_cap(self):
-        print('Video Capture!')
-        cv2.imwrite("/home/jin/mst/jin/1.GUI/2.Src/Capture_Video/" + str(self.now) + ".png", self.frame)
+        print('Capture file save : ' + '/home/jin/mst/jin/The_latest_package/Storage_video/')
+        cv2.imwrite("/home/jin/mst/jin/The_latest_package/Storage_video/" + str(self.now) + ".png", self.frame)
 
     def rec_strat(self):
         self.button_REC.setEnabled(False)
+        self.button_Stop.setEnabled(True)
         print('Recording Start!')
         self.record = True
-        self.video = cv2.VideoWriter("/home/jin/mst/jin/1.GUI/2.Src/Recording_Video/" + str(self.now) + ".avi", self.fourcc, 30.0, (self.frame.shape[1], self.frame.shape[0]))        
+        self.video = cv2.VideoWriter("/home/jin/mst/jin/The_latest_package/Storage_video/" + str(self.now) + ".avi", self.fourcc, 30.0, (self.frame.shape[1], self.frame.shape[0]))        
         self.button_REC.setText("REC...")
 
     def rec_stop(self):
         self.button_REC.setEnabled(True)
-        print('Recording Stop!')
+        self.button_Stop.setEnabled(False)
+        print('Record file save : '+ '/home/jin/mst/jin/The_latest_package/Storage_video/)')
         self.record = False
         self.video.release()
         self.button_REC.setText("REC")
@@ -398,13 +397,12 @@ class Video_Btn_Set():                                      # Video 조작 화�
         self.finder.close()
         self.close()
 
-class Tracking_Finder(QtWidgets.QDialog, Background_Set):    # Cam 수동조작 & 방향키
+class Tracking_Finder(QtWidgets.QDialog, Background_Set):   # Cam 수동조작 & 방향키
     def __init__(self):
         super(Tracking_Finder, self).__init__()
         self.background_set()
 
         height = 250
-        
         self.setFixedSize(Main_width, height)
         self.setGeometry(Position.x(), Position.y()+Main_height+10, Main_width, height)
 
@@ -564,28 +562,28 @@ class Camera_Control(QtWidgets.QDialog, Background_Set):    # Cam 수동조작 &
         self.setFixedSize(Main_width, height)
         self.setGeometry(Position.x(), Position.y()+520-height, Main_width, height)
 
-        self.button_Up = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/Direction/up.png'),'', self)
+        self.button_Up = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/up.png'),'', self)
         self.button_Up.resize(40, 40)
         self.button_Up.move(67.5, 5)
         self.button_Up.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Up.setFocusPolicy(Qt.NoFocus)
         self.button_Up.clicked.connect(self.Manual_Up)
 
-        self.button_Down = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/Direction/down.png'),'', self)
+        self.button_Down = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/down.png'),'', self)
         self.button_Down.resize(40, 40)
         self.button_Down.move(67.5, 46)
         self.button_Down.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Down.setFocusPolicy(Qt.NoFocus)
         self.button_Down.clicked.connect(self.Manual_Down)
 
-        self.button_Right = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/Direction/right.png'),'', self)
+        self.button_Right = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/right.png'),'', self)
         self.button_Right.resize(40, 40)
         self.button_Right.move(108, 46)
         self.button_Right.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Right.setFocusPolicy(Qt.NoFocus)
         self.button_Right.clicked.connect(self.Manual_Right)
 
-        self.button_Left = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/1.GUI/2.Src/icon/Direction/left.png'),'', self)
+        self.button_Left = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/left.png'),'', self)
         self.button_Left.resize(40, 40)
         self.button_Left.move(26.5, 46)
         self.button_Left.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
@@ -643,7 +641,7 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):    # Only C
         self.finder.close()
         
         self.camera=camera  
-        self._sub = rospy.Subscriber('/camera%s/usb_cam%s/image_raw' % (str(camera), str(camera)), Image, self.callback, queue_size=1)
+        self._sub = rospy.Subscriber('/cam_num%s' % str(camera), Image, self.callback, queue_size=1)
         
         self.bridge = CvBridge()
 
@@ -721,10 +719,8 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         # if path1[0] == '':        # Tracking cam 중단
             # exit()            
-        faceCascade = cv2.CascadeClassifier(path1[0])
-
         self.cv_image = np.uint8(self.cv_image)
-
+        faceCascade = cv2.CascadeClassifier(path1[0])
         faces = faceCascade.detectMultiScale(self.cv_image, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
 
         for (x,y,w,h) in faces:
