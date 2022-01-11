@@ -1,7 +1,8 @@
 #-*- coding:utf-8 -*-
-import rospy
+import rospy, cv2, Adafruit_PCA9685 
 from std_msgs.msg import UInt16MultiArray, Int8MultiArray
-import Adafruit_PCA9685 
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge, CvBridgeError
 
 global Camera_number
 Camera_number = '1'
@@ -13,6 +14,23 @@ pwm.set_pwm_freq(60)
 midScreenX = 320/2    # 화면 x축 중앙
 midScreenY = 240/2    # 화면 y축 중앙
 midScreenWindow = 17  # 객체를 인식한 사각형이 중앙에서 벗어날 수 있는 여유 값
+
+cap = cv2.VideoCapture(0)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+cap.set(cv2.CAP_PROP_FPS, 20)
+
+rospy.init_node("webcam_pub", anonymous=True)
+image_pub = rospy.Publisher("cam_num1", Image, queue_size=1)
+
+bridge = CvBridge()
+
+while not rospy.is_shutdown():
+    ret, cv_image = cap.read()
+    image_pub.publish(bridge.cv2_to_imgmsg(cv_image, "bgr8"))
+
+cap.release()
+cv2.destroyAllWindows()
 
 def set_servo_pulse(channel, pulse):
     pulse_length = 1000000    # 1,000,000 us per second
