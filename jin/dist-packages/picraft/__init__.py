@@ -1,1 +1,0 @@
-../../../../share/pyshared/picraft/__init__.py

@@ -1,3 +1,0 @@
-[console_scripts]
-rosinstall_generator = rosinstall_generator.cli:main
-
