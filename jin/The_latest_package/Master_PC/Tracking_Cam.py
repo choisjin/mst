@@ -8,7 +8,7 @@ import os, sys, rospy, cv2, datetime
 import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
-from std_msgs.msg import UInt16MultiArray, Int8MultiArray
+from std_msgs.msg import UInt16MultiArray, Int8MultiArray, Int8
 from time import sleep
 
 class Background_Set():                                                 # 배경화면 셋팅
@@ -269,7 +269,7 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
-            self.closeEvent(e)
+            self.closeEvent(e)  
 
 class Cam_Btn_Set():                                                    # Cam 조작 화면 버튼
     def cam_btn_set(self, camera):                      # Cam 조작 버튼 셋팅
@@ -335,29 +335,42 @@ class Cam_Btn_Set():                                                    # Cam �
         if self.manual == 1:
             self.button_Auto.setText("Manual")
             self.control = Camera_Control(self.Camera_contol_num)
+            self.tracking_on_off = 0
             self.manual = 0
+
+            manual_check_pub = rospy.Publisher("manual%s_check" % self.Camera_contol_num, Int8, queue_size=1)
+            manual_check_pub.publish(0) 
+
         else:
             self.button_Auto.setText("Auto")
             self.control.close()
+            self.tracking_on_off = 1
             self.manual = 1
+
+            manual_check_pub = rospy.Publisher("manual%s_check" % self.Camera_contol_num, Int8, queue_size=1)
+            manual_check_pub.publish(1)
 
     def exit_cam(self):
         if self.manual == 0 and self.record == True:
             print('Recording Stop!')
             self.record = False
+            self.tracking_on_off = 0
             self.control.close()
             self.finder.close()
             self.close() 
         elif self.record == True:
             print('Recording Stop!')
             self.record = False
+            self.tracking_on_off = 0
             self.finder.close()
             self.close() 
         elif self.manual == 0:
+            self.tracking_on_off = 0
             self.control.close()
             self.finder.close()
             self.close()                
         else:
+            self.tracking_on_off = 0
             self.finder.close()
             self.close() 
 
@@ -416,7 +429,7 @@ class Camera_Control(QtWidgets.QDialog, Background_Set):                # Cam �
             x, y = 1, 0
         elif self.args == 4:
             x, y = -1, 0       
- 
+    
         pub = rospy.Publisher('manual_control_%d'%self.Camera_control_num, Int8MultiArray, queue_size=1)
         my_msg = Int8MultiArray()
         my_msg.data = [x, y]
@@ -752,14 +765,13 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         
         self.cam_btn_set(camera)
         self.show()
-
+        
+        self.tracking_on_off = 1
         self.face_count = 0      
         self.init_count = 0
 
     def callback(self, data):                           # Cam 데이터 Qt 데이터로 변환 및 객체 인식에 따른 모터 구동 Pub
         self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-        # if path1[0] == '':        # Tracking cam 중단
-            # exit()            
         self.cv_image = np.uint8(self.cv_image)
         faceCascade = cv2.CascadeClassifier(path1[0])
         faces = faceCascade.detectMultiScale(self.cv_image, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
@@ -776,10 +788,14 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
             elif faces == ():
                 self.face_count = 0        
             cv2.rectangle(self.cv_image,(self.x,self.y),(self.x+self.w,self.y+self.h),(0,255,0),1)
-            pub = rospy.Publisher('servo_controller_%d' % self.camera, UInt16MultiArray, queue_size=1)
-            self.my_msg = UInt16MultiArray()
-            self.my_msg.data = [self.x,self.y,self.w,self.h]
-            pub.publish(self.my_msg)
+            
+            if self.tracking_on_off == 1:
+                pub = rospy.Publisher('servo_controller_%d' % self.camera, UInt16MultiArray, queue_size=1)
+                self.my_msg = UInt16MultiArray()
+                self.my_msg.data = [self.x,self.y,self.w,self.h]
+                pub.publish(self.my_msg)
+            elif self.tracking_on_off == 0:
+                pass
 
         if self.record == True:    
             self.video.write(self.cv_image)
@@ -798,19 +814,23 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
             if self.manual == 0 and self.record == True:
                 print('Recording Stop!')
                 self.record = False
+                self.tracking_on_off = 0
                 self.control.close()
                 self.finder.close()
                 self.close() 
             elif self.record == True:
                 print('Recording Stop!')
                 self.record = False
+                self.tracking_on_off = 0
                 self.finder.close()
                 self.close() 
             elif self.manual == 0:
                 self.control.close()
+                self.tracking_on_off = 0
                 self.finder.close()
                 self.close()                
             else:
+                self.tracking_on_off = 0
                 self.finder.close()
                 self.close() 
 
