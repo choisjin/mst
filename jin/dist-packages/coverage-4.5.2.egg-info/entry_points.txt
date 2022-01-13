@@ -1,0 +1,5 @@
+[console_scripts]
+python-coverage = coverage.cmdline:main
+python2-coverage = coverage.cmdline:main
+python2.7-coverage = coverage.cmdline:main
+
