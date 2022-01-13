@@ -8,8 +8,8 @@ from multiprocessing import Process
 global Camera_number
 Camera_number = '1'
 
-midScreenX = 320/2    # 화면 x축 중앙
-midScreenY = 240/2    # 화면 y축 중앙
+midScreenX = 640/2    # 화면 x축 중앙
+midScreenY = 480/2    # 화면 y축 중앙
 midScreenWindow = 17  # 객체를 인식한 사각형이 중앙에서 벗어날 수 있는 여유 값
 
 pwm = Adafruit_PCA9685.PCA9685() 
@@ -27,10 +27,11 @@ def set_servo_pulse(channel, pulse):
 
 class Cam_Publisher():
     def __call__(self):
-        cap = cv2.VideoCapture(0)
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
-        cap.set(cv2.CAP_PROP_FPS, 20)    
+        cap = cv2.VideoCapture(0)               
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        cap.set(cv2.CAP_PROP_FPS, 30)    
+        
         rospy.init_node("cam_pub", anonymous=True)
         image_pub = rospy.Publisher("cam_num%s" % Camera_number, Image, queue_size=1)
 
@@ -45,11 +46,12 @@ class Cam_Publisher():
 
 class Servo_Subscriber():
     def __call__(self):
-        rospy.init_node('servo_subs', anonymous=True)
-        self.Servo_subs = rospy.Subscriber('/servo_controller_%s' % Camera_number, UInt16MultiArray, self.callback, queue_size=1)
-        
         self.servo_x = 320
         self.servo_y = 390
+        pwm.set_pwm(1, 0, self.servo_x)
+        pwm.set_pwm(0, 0, self.servo_y)
+        rospy.init_node('servo_subs', anonymous=True)
+        self.Servo_subs = rospy.Subscriber('/servo_controller_%s' % Camera_number, UInt16MultiArray, self.callback, queue_size=1)
 
         rospy.spin()
    
@@ -61,7 +63,7 @@ class Servo_Subscriber():
         
         self.servo_x1 = int(x+w/2)
         self.servo_y1 = int(y+h/2)
-               
+    
         if self.servo_x1 < midScreenX-midScreenWindow:
             self.servo_x += 1    
             pwm.set_pwm(1, 0, self.servo_x)
@@ -80,6 +82,7 @@ class Servo_Subscriber():
 
 class Manual_Subscriber():
     def __call__(self): 
+        
         rospy.init_node('manual_subs', anonymous=True)
         self._Manual_subs = rospy.Subscriber('/manual_control_%s' % Camera_number, Int8MultiArray, self.callback1, queue_size=1)
         
@@ -94,7 +97,7 @@ class Manual_Subscriber():
 
         self.servo_x1 = x
         self.servo_y1 = y
-        
+
         if self.servo_x1 == 1:
             self.servo_x += 1
             pwm.set_pwm(1, 0, self.servo_x)
@@ -111,9 +114,9 @@ class Manual_Subscriber():
             self.servo_y += 1
             pwm.set_pwm(0, 0, self.servo_y)
 try:
-    p1 = Process(target = Cam_Publisher())
-    p2 = Process(target = Servo_Subscriber())
-    p3 = Process(target = Manual_Subscriber())
+    p1 = Process(target = Cam_Publisher())      # Cam_data Publisher
+    p2 = Process(target = Servo_Subscriber())   # Tracking_data Subscriber
+    p3 = Process(target = Manual_Subscriber())  # Manual_control_data Subscriber
 
     p1.start()
     p2.start()
