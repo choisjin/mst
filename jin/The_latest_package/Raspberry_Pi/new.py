@@ -48,7 +48,7 @@ class Tracking_Subscriber():
     def __call__(self): 
 
         rospy.init_node('tracking_subs', anonymous=True)
-        self.tracking_subs = rospy.Subscriber('/cam_tracking%s' % Camera_number,  Int8MultiArray, self.callback_manual, queue_size=1)
+        self.tracking_subs = rospy.Subscriber('/cam_tracking%s' % Camera_number,  UInt16MultiArray, self.callback_manual, queue_size=1)
 
         rospy.spin()
 
@@ -62,7 +62,7 @@ class Manual_Subscriber():
     def __call__(self): 
 
         rospy.init_node('manual_subs', anonymous=True)
-        self.manual_subs = rospy.Subscriber('/manual_control_%s' % Camera_number,  Int8MultiArray, self.callback_manual, queue_size=1)
+        self.manual_subs = rospy.Subscriber('/manual_control_%s' % Camera_number,  UInt16MultiArray, self.callback_manual, queue_size=1)
 
         rospy.spin()
 
