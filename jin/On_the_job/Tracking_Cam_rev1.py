@@ -8,7 +8,7 @@ import os, sys, rospy, cv2, datetime
 import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
-from std_msgs.msg import UInt16MultiArray, Int8MultiArray
+from std_msgs.msg import UInt16MultiArray, Int8MultiArray, Int8
 from time import sleep
 
 class Background_Set():                                                 # 배경화면 셋팅
@@ -95,7 +95,7 @@ class LoginForm(QtWidgets.QDialog, Background_Set):                     # 로그
             self.check_password()
         
         elif e.key() == Qt.Key_Escape:
-            self.close()        
+            sys.exit()        
 
 class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능선택 화면
     def __init__(self):                                 
@@ -131,11 +131,12 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
         self.cb.move(5, 40)
         self.ComboBoxInit()
         self.cb.activated[str].connect(self.Select_Cam)
-
+ 
         self.train = 0
         self.video = 0
         self.cam_num = 0
-    
+        self.cam_select = 0
+        self.logout_num = 0
         self.show()                                 # MainWindow 창 띄움
 
     def setToolBar(self):                               # 툴바 셋팅
@@ -144,7 +145,7 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
         exitAction.setShortcut('Ctrl+Q')            # 툴바 단축키 설정
         exitAction.setStatusTip('Exit')             # 상태창 메세지
         exitAction.setToolTip('Ctrl+Q')             # 툴팁 메세지
-        exitAction.triggered.connect(self.close)    # 툴바 클릭시 발생 이벤트
+        exitAction.triggered.connect(self.exit_btn)    # 툴바 클릭시 발생 이벤트
 
         logoutAction = QtWidgets.QAction(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Toolbar/logout.png'), 'Logout', self)
         logoutAction.setShortcut('Ctrl+L')
@@ -213,11 +214,13 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
             self.ComboBoxInit()
     
     def Logout(self):                                   # Logout 기능
-        self.logout = LoginForm() 
+        self.logout = LoginForm()
+        self.logout_num = 1
         self.close()
         if self.logout_signal == 1:
             self.logout.show()
         else:
+            self.logout_num = 0
             self.show()
             
     def Select_Cam(self, cam_num):                      # Cam 선택 및 초기화
@@ -248,20 +251,25 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
             elif self.train == 0 and self.video == 1:
                 print('video only')
                 Normal_Video() 
-
+    
+    def exit_btn(self):
+        self.close()
+    
     def closeEvent(self, event):
-        quit_msg = "Want to exit?"
+        quit_msg = "Want to Logout or Exit?"
         reply = QtWidgets.QMessageBox.question(self, 'Exit', quit_msg, QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Yes)
-
         if reply == QtWidgets.QMessageBox.Yes:
-            self.logout_signal=1
+            if self.logout_num == 1:
+                self.logout_signal=1
+            else:
+                sys.exit()
         else:
             self.logout_signal=2
             event.ignore()
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
-            self.close()
+            self.closeEvent(e)  
 
 class Cam_Btn_Set():                                                    # Cam 조작 화면 버튼
     def cam_btn_set(self, camera):                      # Cam 조작 버튼 셋팅
@@ -326,94 +334,38 @@ class Cam_Btn_Set():                                                    # Cam �
     def controller_open(self):                          # Cam 수동조작 화면 오픈
         if self.manual == 1:
             self.button_Auto.setText("Manual")
+            self.tracking_on_off = 0
             self.control = Camera_Control(self.Camera_contol_num)
             self.manual = 0
         else:
             self.button_Auto.setText("Auto")
             self.control.close()
+            self.tracking_on_off = 1
             self.manual = 1
 
     def exit_cam(self):
-        if self.manual == 0:
+        if self.manual == 0 and self.record == True:
+            print('Recording Stop!')
+            self.record = False
+            self.tracking_on_off = 0
             self.control.close()
             self.finder.close()
-            self.close()
-        else:
+            self.close() 
+        elif self.record == True:
+            print('Recording Stop!')
+            self.record = False
+            self.tracking_on_off = 0
             self.finder.close()
-            self.close()
-
-class Camera_Control(QtWidgets.QDialog, Background_Set):                # Cam 수동조작 & 방향키
-    def __init__(self, Camera_control_num):             # Cam 수동조작 화면 셋팅
-        super(Camera_Control, self).__init__()
-        self.background_set()
-        
-        self.Camera_control_num = Camera_control_num
-        print('Cam_Control_Num : %d' % self.Camera_control_num)
-
-        height = 90
-        self.setFixedSize(Main_width, height)
-        self.setGeometry(Position.x(), Position.y()+520-height, Main_width, height)
-
-        self.button_Up = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/up.png'),'', self)
-        self.button_Up.resize(40, 40)
-        self.button_Up.move(67.5, 5)
-        self.button_Up.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_Up.setFocusPolicy(Qt.NoFocus)
-        self.button_Up.clicked.connect(lambda:self.Manual(1))
-
-        self.button_Down = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/down.png'),'', self)
-        self.button_Down.resize(40, 40)
-        self.button_Down.move(67.5, 46)
-        self.button_Down.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_Down.setFocusPolicy(Qt.NoFocus)
-        self.button_Down.clicked.connect(lambda:self.Manual(2))
-
-        self.button_Right = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/right.png'),'', self)
-        self.button_Right.resize(40, 40)
-        self.button_Right.move(108, 46)
-        self.button_Right.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_Right.setFocusPolicy(Qt.NoFocus)
-        self.button_Right.clicked.connect(lambda:self.Manual(3))
-
-        self.button_Left = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/left.png'),'', self)
-        self.button_Left.resize(40, 40)
-        self.button_Left.move(26.5, 46)
-        self.button_Left.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_Left.setFocusPolicy(Qt.NoFocus)
-        self.button_Left.clicked.connect(lambda:self.Manual(4))
-
-        self.show()
-
-    def Manual(self, args):                             # Cam 수동조작 Topic 발행
-        self.args = args
-        x = 0
-        y = 0
-        
-        if self.args == 1:
-            x, y = 0, 1
-        elif self.args == 2:
-            x, y = 0, -1
-        elif self.args == 3:
-            x, y = 1, 0
-        elif self.args == 4:
-            x, y = -1, 0       
- 
-        pub = rospy.Publisher('manual_control_%d'%self.Camera_control_num, Int8MultiArray, queue_size=1)
-        my_msg = Int8MultiArray()
-        my_msg.data = [x, y]
-        pub.publish(my_msg)
-
-    def keyPressEvent(self, k):                         # Cam 키보드 조작
-        if k.key() == Qt.Key_Escape:
-            self.close()
-        elif k.key() == Qt.Key_Up:
-           self.Manual(1)
-        elif k.key() == Qt.Key_Down:
-            self.Manual(2)
-        elif k.key() == Qt.Key_Right:
-            self.Manual(3)
-        elif k.key() == Qt.Key_Left:
-            self.Manual(4)
+            self.close() 
+        elif self.manual == 0:
+            self.tracking_on_off = 0
+            self.control.close()
+            self.finder.close()
+            self.close()                
+        else:
+            self.tracking_on_off = 0
+            self.finder.close()
+            self.close() 
 
 class Video_Btn_Set():                                                  # Video 조작 화면 버튼
     def video_btn_set(self):                            # Video 조작 버튼 셋팅
@@ -467,9 +419,18 @@ class Video_Btn_Set():                                                  # Video 
         self.button_REC.setText("REC")
 
     def exit_cam(self):
-        self.finder.close()
-        self.close()
-
+        if self.record == True:
+            print('Recording Stop!')
+            self.record = False
+            self.video.release()
+            self.cap.release()
+            self.finder.close()
+            self.close()
+        else:
+            self.cap.release()
+            self.finder.close()
+            self.close()
+            
 class Tracking_Finder(QtWidgets.QDialog, Background_Set):               # 객체 인식시 로그 발생창
     def __init__(self):
         super(Tracking_Finder, self).__init__()
@@ -492,7 +453,6 @@ class Tracking_Finder(QtWidgets.QDialog, Background_Set):               # 객체
 
     def append_text(self, args):
         self.tb.append(args)
-
 
 class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only Video 조작 화면
     def __init__(self):                                 # Video 화면 셋팅
@@ -590,20 +550,25 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
             self.ret, self.frame = self.cap.read()
             faces = faceCascade.detectMultiScale(self.frame, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
             now = datetime.datetime.now().strftime("%m-%d-%H:%M:%S")
-
+            
             if not self.ret:
                 if self.record == True:
                     print('Recording Stop!')
                     self.record = False
                     self.video.release()
+                    self.cap.release()
                     self.close()
                 else:
+                    self.cap.release()
                     self.close()
                 break
             
+            if faces == ():
+                face_count = 0
+            
             for (x,y,w,h) in faces:
                 face_count += 1
-                if face_count == 10:
+                if face_count == 30:
                     getmsg = now
                     self.finder.append_text(getmsg)
                     face_count = 0
@@ -706,6 +671,10 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         self.finder = Tracking_Finder()
 
         self.camera=camera  
+        cam_tracking_pub = rospy.Publisher('cam_tracking%d' % self.camera, UInt16MultiArray, queue_size=1)
+        self.my_msg = UInt16MultiArray()
+        self.my_msg.data = [320, 290]
+        cam_tracking_pub.publish(self.my_msg)
         self._sub = rospy.Subscriber('/cam_num%s' % str(camera), Image, self.callback, queue_size=1)
         
         self.bridge = CvBridge()
@@ -719,23 +688,75 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         self.label.move(0,0)
         
         self.cam_btn_set(camera)
-        self.show()      
+        
+        self.show()
+
+        self.servo_x = 320
+        self.servo_y = 390
+        
+        
+        self.tracking_on_off = 1
+
+        self.face_count = 0      
+        self.init_count = 0
 
     def callback(self, data):                           # Cam 데이터 Qt 데이터로 변환 및 객체 인식에 따른 모터 구동 Pub
+        global servo_check
+        servo_check = self.tracking_on_off ###
+        midScreenX = 320/2    # 화면 x축 중앙
+        midScreenY = 240/2    # 화면 y축 중앙
+        midScreenWindow = 17  # 객체를 인식한 사각형이 중앙에서 벗어날 수 있는 여유 값
+        
         self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-        # if path1[0] == '':        # Tracking cam 중단
-            # exit()            
         self.cv_image = np.uint8(self.cv_image)
         faceCascade = cv2.CascadeClassifier(path1[0])
         faces = faceCascade.detectMultiScale(self.cv_image, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
-
+        
+        if faces == ():
+                self.face_count = 0    
+        
         for (x,y,w,h) in faces:
+            self.face_count += 1
+            if self.face_count == 50:
+                now = datetime.datetime.now().strftime("%m-%d-%H:%M:%S")
+                getmsg = now
+                self.finder.append_text(getmsg) 
+                self.face_count = 0
+            elif faces == ():
+                self.face_count = 0        
             cv2.rectangle(self.cv_image,(x,y),(x+w,y+h),(0,255,0),1)
-            pub = rospy.Publisher('servo_controller_%d' % self.camera, UInt16MultiArray, queue_size=1)
-            self.my_msg = UInt16MultiArray()
-            self.my_msg.data = [x,y,w,h]
-            pub.publish(self.my_msg)
+            
+            if self.tracking_on_off == 1:
+                self.servo_x1 = int(x+w/2)
+                self.servo_y1 = int(y+h/2)
 
+                if self.servo_x1 < midScreenX-midScreenWindow:
+                    self.servo_x += 1    
+                elif self.servo_x1 > midScreenX+midScreenWindow:
+                    self.servo_x -= 1
+                if self.servo_y1 > midScreenY+midScreenWindow:
+                    self.servo_y += 1
+                elif self.servo_y1 < midScreenY-midScreenWindow:
+                    self.servo_y -= 1
+
+                cam_tracking_pub = rospy.Publisher('cam_tracking%d' % self.camera, UInt16MultiArray, queue_size=1)
+                self.my_msg = UInt16MultiArray()
+                self.my_msg.data = [self.servo_x, self.servo_y]
+                cam_tracking_pub.publish(self.my_msg)
+                
+                global manual_servo_x
+                global manual_servo_y
+                manual_servo_x = self.servo_x
+                manual_servo_y = self.servo_y
+            else :
+                pass
+        
+        manual_servo_x = self.servo_x
+        manual_servo_y = self.servo_y
+        
+        if self.tracking_on_off == 0:
+            self.manual_subs = rospy.Subscriber('/manual_control_%s' % self.camera,  UInt16MultiArray, self.callback_manual, queue_size=1)
+                    
         if self.record == True:    
             self.video.write(self.cv_image)
 
@@ -747,27 +768,114 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         pixmap = QtGui.QPixmap.fromImage(qImg)
         pixmap = pixmap.scaledToWidth(640)
         self.label.setPixmap(pixmap)
-            
+    
+    def callback_manual(self, manual_msg): 
+                    self.servo_x = manual_msg.data[0]
+                    self.servo_y = manual_msg.data[1]
+
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             if self.manual == 0 and self.record == True:
                 print('Recording Stop!')
                 self.record = False
+                self.tracking_on_off = 0
                 self.control.close()
                 self.finder.close()
                 self.close() 
             elif self.record == True:
                 print('Recording Stop!')
                 self.record = False
+                self.tracking_on_off = 0
                 self.finder.close()
                 self.close() 
             elif self.manual == 0:
                 self.control.close()
+                self.tracking_on_off = 0
                 self.finder.close()
                 self.close()                
             else:
+                self.tracking_on_off = 0
                 self.finder.close()
                 self.close() 
+
+class Camera_Control(QtWidgets.QDialog, Background_Set):                # Cam 수동조작 & 방향키
+    def __init__(self, Camera_control_num):             # Cam 수동조작 화면 셋팅
+        super(Camera_Control, self).__init__()
+        self.background_set()
+
+        self.Camera_control_num = Camera_control_num
+        print('Cam_Control_Num : %d' % self.Camera_control_num)
+
+        height = 90
+        self.setFixedSize(Main_width, height)
+        self.setGeometry(Position.x(), Position.y()+520-height, Main_width, height)
+
+        self.button_Up = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/up.png'),'', self)
+        self.button_Up.resize(40, 40)
+        self.button_Up.move(67.5, 5)
+        self.button_Up.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Up.setFocusPolicy(Qt.NoFocus)
+        self.button_Up.clicked.connect(lambda:self.Manual(1))
+
+        self.button_Down = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/down.png'),'', self)
+        self.button_Down.resize(40, 40)
+        self.button_Down.move(67.5, 46)
+        self.button_Down.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Down.setFocusPolicy(Qt.NoFocus)
+        self.button_Down.clicked.connect(lambda:self.Manual(2))
+
+        self.button_Right = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/right.png'),'', self)
+        self.button_Right.resize(40, 40)
+        self.button_Right.move(108, 46)
+        self.button_Right.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Right.setFocusPolicy(Qt.NoFocus)
+        self.button_Right.clicked.connect(lambda:self.Manual(3))
+
+        self.button_Left = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/left.png'),'', self)
+        self.button_Left.resize(40, 40)
+        self.button_Left.move(26.5, 46)
+        self.button_Left.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Left.setFocusPolicy(Qt.NoFocus)
+        self.button_Left.clicked.connect(lambda:self.Manual(4))
+
+        self.show()
+
+    def Manual(self, args):                             # Cam 수동조작 Topic 발행
+        self.args = args
+        print('tracking_on_off : %d' % servo_check)
+        
+        if servo_check == 0:
+            servo_x = manual_servo_x
+            servo_y = manual_servo_y
+        else:
+            pass
+
+        if self.args == 1:
+             servo_y -= 1
+        elif self.args == 2:
+            servo_y += 1
+        elif self.args == 3:
+            servo_x += 1
+        elif self.args == 4:
+            servo_x -= 1
+        
+        manual_control_pub = rospy.Publisher('manual_control_%d'%self.Camera_control_num, UInt16MultiArray, queue_size=1)
+        my_msg = UInt16MultiArray()
+        my_msg.data = [servo_x, servo_y]
+        manual_control_pub.publish(my_msg)
+
+    def keyPressEvent(self, k):                         # Cam 키보드 조작
+        if k.key() == Qt.Key_Escape:
+            self.close()
+        elif k.key() == Qt.Key_Up:
+           self.Manual(1)
+        elif k.key() == Qt.Key_Down:
+            self.Manual(2)
+        elif k.key() == Qt.Key_Right:
+            self.Manual(3)
+        elif k.key() == Qt.Key_Left:
+            self.Manual(4)
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
