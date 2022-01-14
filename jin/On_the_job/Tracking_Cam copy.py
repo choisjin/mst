@@ -335,7 +335,7 @@ class Cam_Btn_Set():                                                    # Cam �
         if self.manual == 1:
             self.button_Auto.setText("Manual")
             self.tracking_on_off = 0
-            self.control = Camera_Control(self.Camera_contol_num, self.tracking_on_off)
+            self.control = Camera_Control(self.Camera_contol_num)
             self.manual = 0
         else:
             self.button_Auto.setText("Auto")
@@ -368,10 +368,10 @@ class Cam_Btn_Set():                                                    # Cam �
             self.close() 
 
 class Camera_Control(QtWidgets.QDialog, Background_Set):                # Cam 수동조작 & 방향키
-    def __init__(self, Camera_control_num, tracking_on_off):             # Cam 수동조작 화면 셋팅
+    def __init__(self, Camera_control_num):             # Cam 수동조작 화면 셋팅
         super(Camera_Control, self).__init__()
         self.background_set()
-        self.tracking_on_off = tracking_on_off
+
         self.Camera_control_num = Camera_control_num
         print('Cam_Control_Num : %d' % self.Camera_control_num)
 
@@ -406,29 +406,28 @@ class Camera_Control(QtWidgets.QDialog, Background_Set):                # Cam �
         self.button_Left.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Left.setFocusPolicy(Qt.NoFocus)
         self.button_Left.clicked.connect(lambda:self.Manual(4))
-               
+        
+        self.tracking_subs = rospy.Subscriber('/cam_tracking%s' % self.Camera_control_num,  UInt16MultiArray, self.callback_manual, queue_size=1)
+
         self.show()
 
     def Manual(self, args):                             # Cam 수동조작 Topic 발행
-        print(self.tracking_on_off)
         self.args = args
-        if self.tracking_on_off == 0:
-            if self.args == 1:
-                self.servo_y -= 1
-            elif self.args == 2: 
-                self.servo_y += 1
-            elif self.args == 3:
-                self.servo_x += 1
-            elif self.args == 4:                ################################################################################
-                self.servo_x -= 1
-
-        self.tracking_subs = rospy.Subscriber('/cam_tracking%s' % self.Camera_control_num,  UInt16MultiArray, self.callback_manual, queue_size=1)
+        
+        if self.args == 1:
+            self.servo_y -= 1
+        elif self.args == 2:
+            self.servo_y += 1
+        elif self.args == 3:
+            self.servo_x += 1
+        elif self.args == 4:
+            self.servo_x -= 1
 
         manual_control_pub = rospy.Publisher('manual_control_%d'%self.Camera_control_num, UInt16MultiArray, queue_size=1)
         my_msg = UInt16MultiArray()
         my_msg.data = [self.servo_x, self.servo_y]
         manual_control_pub.publish(my_msg)
-    
+
     def callback_manual(self, manual_msg): 
         self.servo_x = manual_msg.data[0]
         self.servo_y = manual_msg.data[1] 
@@ -749,6 +748,10 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         self.finder = Tracking_Finder()
 
         self.camera=camera  
+        cam_tracking_pub = rospy.Publisher('cam_tracking%d' % self.camera, UInt16MultiArray, queue_size=1)
+        self.my_msg = UInt16MultiArray()
+        self.my_msg.data = [320, 290]
+        cam_tracking_pub.publish(self.my_msg)
         self._sub = rospy.Subscriber('/cam_num%s' % str(camera), Image, self.callback, queue_size=1)
         
         self.bridge = CvBridge()
@@ -762,6 +765,9 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         self.label.move(0,0)
         
         self.cam_btn_set(camera)
+        
+        
+        
         self.show()
 
         self.servo_x = 320
@@ -770,7 +776,9 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         self.tracking_on_off = 1
         self.face_count = 0      
         self.init_count = 0
+
         
+
     def callback(self, data):                           # Cam 데이터 Qt 데이터로 변환 및 객체 인식에 따른 모터 구동 Pub
         midScreenX = 320/2    # 화면 x축 중앙
         midScreenY = 240/2    # 화면 y축 중앙
@@ -813,7 +821,7 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
                 self.my_msg.data = [self.servo_x, self.servo_y]
                 cam_tracking_pub.publish(self.my_msg)
             
-            if self.tracking_on_off == 0:
+            else :
                 pass
 
         if self.tracking_on_off == 0:
