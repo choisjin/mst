@@ -338,8 +338,8 @@ class Cam_Btn_Set():                                                    # Cam ì¡
             self.tracking_on_off = 0
             self.manual = 0
 
-            manual_check_pub = rospy.Publisher("manual%s_check" % self.Camera_contol_num, Int8, queue_size=1)
-            manual_check_pub.publish(0) 
+            # manual_check_pub = rospy.Publisher("manual%s_check" % self.Camera_contol_num, Int8, queue_size=1)
+            # manual_check_pub.publish(0) 
 
         else:
             self.button_Auto.setText("Auto")
@@ -347,8 +347,8 @@ class Cam_Btn_Set():                                                    # Cam ì¡
             self.tracking_on_off = 1
             self.manual = 1
 
-            manual_check_pub = rospy.Publisher("manual%s_check" % self.Camera_contol_num, Int8, queue_size=1)
-            manual_check_pub.publish(1)
+            # manual_check_pub = rospy.Publisher("manual%s_check" % self.Camera_contol_num, Int8, queue_size=1)
+            # manual_check_pub.publish(1)
 
     def exit_cam(self):
         if self.manual == 0 and self.record == True:
@@ -775,6 +775,23 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         self.cv_image = np.uint8(self.cv_image)
         faceCascade = cv2.CascadeClassifier(path1[0])
         faces = faceCascade.detectMultiScale(self.cv_image, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
+        
+        if self.manual == 1:
+            manual_check_pub = rospy.Publisher("manual%s_check" % self.Camera_contol_num, Int8, queue_size=1)
+            manual_check_pub.publish(0)
+            
+            pub = rospy.Publisher('servo_controller_%d' % self.camera, UInt16MultiArray, queue_size=1)
+            self.my_msg = UInt16MultiArray()
+            self.my_msg.data = [160, 120, 0, 0]
+            pub.publish(self.my_msg)
+        elif self.manual == 0:
+            manual_check_pub = rospy.Publisher("manual%s_check" % self.Camera_contol_num, Int8, queue_size=1)
+            manual_check_pub.publish(1)
+            
+            pub = rospy.Publisher('servo_controller_%d' % self.camera, UInt16MultiArray, queue_size=1)
+            self.my_msg = UInt16MultiArray()
+            self.my_msg.data = [160, 120, 0, 0]
+            pub.publish(self.my_msg)
         
         if faces == ():
             self.face_count = 0
