@@ -586,7 +586,7 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
 
             for (x,y,w,h) in faces:
                 face_count += 1
-                if face_count == 30:
+                if face_count == 50:
                     getmsg = now
                     self.finder.append_text(getmsg)
                     face_count = 0

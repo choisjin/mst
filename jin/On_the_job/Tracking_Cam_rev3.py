@@ -2,6 +2,8 @@
 # GUI관련 모듈
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import Qt
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
+from PyQt5.QtCore import QUrl
 
 # Topic통신 관련 모듈
 import os, sys, rospy, cv2, datetime
@@ -209,7 +211,7 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
         
         path = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', '', 'mp4 File(*.mp4)')
         self.videoPath.setText(path[0])
-        
+ 
         if path[0] == '':
             self.video = 0
         else:
@@ -407,10 +409,83 @@ class Video_Btn_Set():                                                  # Video 
         self.button_Exit.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Exit.clicked.connect(self.exit_cam)
 
+    
+        
+        self.lab_time = QtWidgets.QLabel('시간표시', self)
+        self.lab_time.resize(60, 20)
+        self.lab_time.move(5, 460)
+        
+        self.Video_Slider = QtWidgets.QSlider(Qt.Horizontal, self)
+        self.Video_Slider.resize(630, 5)
+        self.Video_Slider.move(70, 470)
+        self.Video_Slider.sliderMoved.connect(self.updatePosition)
+
+        self.button_Video_Post_Skip = QtWidgets.QPushButton('-10', self)
+        self.button_Video_Post_Skip.resize(30, 30)
+        self.button_Video_Post_Skip.move(5, 485)
+        self.button_Video_Post_Skip.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        #self.button_Video_Post_Skip.clicked.connect()
+
+        self.button_Video_Rewind = QtWidgets.QPushButton('되', self)
+        self.button_Video_Rewind.resize(30, 30)
+        self.button_Video_Rewind.move(45, 485)
+        self.button_Video_Rewind.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        #self.button_Video_Rewind.clicked.connect()
+
+        self.button_Video_Start = QtWidgets.QPushButton('St', self)
+        self.button_Video_Start.resize(30, 30)
+        self.button_Video_Start.move(85, 485)
+        self.button_Video_Start.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        #self.button_Video_Start.clicked.connect()
+
+        self.button_Video_Fast_Forward = QtWidgets.QPushButton('빨', self)
+        self.button_Video_Fast_Forward.resize(30, 30)
+        self.button_Video_Fast_Forward.move(125, 485)
+        self.button_Video_Fast_Forward.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        #self.button_Video_Fast_Forward.clicked.connect()
+
+        self.button_Video_Next_Skip = QtWidgets.QPushButton('+10', self)
+        self.button_Video_Next_Skip.resize(30, 30)
+        self.button_Video_Next_Skip.move(165, 485)
+        self.button_Video_Next_Skip.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')       # 인코딩 방식 설정 FourCC(Four Character Code)
         self.record = False 
         self.button_Stop.setEnabled(False)                  # 녹화 유무 변수 초기화
         self.now = datetime.datetime.now().strftime("MST_CAP-%Y-%m-%d-%H:%M:%S")
+
+        self.player.durationChanged.connect(self.getDuration)
+        self.player.positionChanged.connect(self.getPosition)
+    
+    def set_video(self):
+        url_path = "u'file://"+path[0]
+        url = QUrl(url_path)
+
+        self.player = QMediaPlayer()
+        self.player.setMedia(QMediaContent(url))
+    
+    def getDuration(self, d):
+        '''d Is the total length of video captured( ms)'''
+        self.Video_Slider.setRange(0, d)
+        self.Video_Slider.setEnabled(True)
+        self.displayTime(d)
+    
+    # Video real-time location acquisition
+    def getPosition(self, p):
+        self.Video_Slider.setValue(p)
+        self.displayTime(self.Video_Slider.maximum()-p)
+    
+    # Show time remaining
+    def displayTime(self, ms):
+        minutes = int(ms/60000)
+        seconds = int((ms-minutes*60000)/1000)
+        self.lab_time.setText('{}:{}'.format(minutes, seconds))
+    
+    # Update video location with progress bar
+    def updatePosition(self, v):
+        self.player.setPosition(v)
+        self.displayTime(self.Video_Slider.maximum()-v)
+
 
     def video_cap(self):                                # Video 캡쳐 기능
         print('Capture file save : ' + '/home/jin/mst/jin/The_latest_package/Storage_video/')
@@ -491,7 +566,7 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only V
 
     def video_convert(self):                            # Video 데이터 Qt 데이터로 변환
         self.cap = cv2.VideoCapture(path[0])
-        self.video_speed = 0.01                             # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
+        self.video_speed = 0.04                             # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
 
         while True:
             self.ret, self.frame = self.cap.read()
@@ -511,7 +586,8 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only V
             h,w,c = img.shape
             qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
             pixmap = QtGui.QPixmap.fromImage(qImg)
-            pixmap = pixmap.scaledToWidth(640)
+            #pixmap = pixmap.scaledToWidth(640)
+            pixmap = pixmap.scaledToHeight(480)
             self.label.setPixmap(pixmap)
             sleep(self.video_speed)
 
@@ -586,7 +662,7 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
 
             for (x,y,w,h) in faces:
                 face_count += 1
-                if face_count == 30:
+                if face_count == 50:
                     getmsg = now
                     self.finder.append_text(getmsg)
                     face_count = 0
