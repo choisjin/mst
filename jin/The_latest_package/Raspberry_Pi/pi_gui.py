@@ -1,9 +1,10 @@
 #-*- coding:utf-8 -*-
-import rospy, cv2, Adafruit_PCA9685 
+import sys, rospy, cv2, Adafruit_PCA9685 
 from std_msgs.msg import UInt16MultiArray
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-from multiprocessing import Process
+from PyQt5 import QtWidgets, QtGui
+from PyQt5.QtCore import Qt
 
 
 global Camera_number
@@ -25,6 +26,52 @@ def set_servo_pulse(channel, pulse):
     pulse *= 1000
     pulse //= pulse_length
     pwm.set_pwm(channel, 0, pulse)
+
+class Background_Set():                                                 # 배경화면 셋팅
+    def background_set(self):
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        
+        pal = QtGui.QPalette()
+        pal.setColor(QtGui.QPalette.Background, QtGui.QColor(255, 255, 255))
+        self.setAutoFillBackground(True)
+        self.setPalette(pal)
+
+class System_On():
+    def system_on(self):
+        self.cam_pub = Cam_Publisher()
+        self.tracking_sub = Tracking_Subscriber()
+        self.manual_sub = Manual_Subscriber()
+        self.cam_init = Cam_Init()
+
+class Raspberry_Pi(System_On, object):
+    def __init__(self):                                 # 로그인 화면 셋팅
+        super(Raspberry_Pi, self).__init__()
+        
+        #Background_Set.background_set()   
+
+        width = 70
+        height = 140
+        #self.setFixedSize(width, height)
+
+        self.button_sys_on = QtWidgets.QPushButton('on', self)
+        self.button_sys_on.clicked.connect(self.system_on())
+        self.button_sys_on.resize(60, 30)
+        self.button_sys_on.move(5, 5)
+        self.button_sys_on.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+
+        self.button_exit = QtWidgets.QPushButton('Exit', self)
+        self.button_exit.clicked.connect(self.close)
+        self.button_exit.resize(60, 30)
+        self.button_exit.move(5, 70)
+        self.button_exit.setStyleSheet('QPushButton {background-color: #000000; color: white;}')        
+
+        self.center()
+
+    def center(self):
+        self.qr = self.frameGeometry()
+        self.cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        self.qr.moveCenter(self.cp)
+        self.move(self.qr.topRight())
 
 class Cam_Publisher():
     def __call__(self):
@@ -95,21 +142,11 @@ class Cam_Init():
     
     def __def__(self):
         print("p4_exit")
-try:    
-    p1 = Process(target = Cam_Publisher())          # Cam_data Publisher
-    p2 = Process(target = Tracking_Subscriber())    # Tracking_data Subscriber
-    p3 = Process(target = Manual_Subscriber())      # Manual_control_data Subscriber
-    p4 = Process(target = Cam_Init())               # Cam_position init
 
-    p1.start()
-    p2.start()
-    p3.start()
-    p4.start()
 
-except KeyboardInterrupt:
-    print("Ctrl + C")
 
-finally:
-    
-
-    print("exit program")
+if __name__ == '__main__':
+    app = QtWidgets.QApplication(sys.argv)
+    init = Raspberry_Pi()
+    init.show()
+    sys.exit(app.exec_())
