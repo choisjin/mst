@@ -409,16 +409,6 @@ class Video_Btn_Set():                                                  # Video 
         self.button_Exit.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Exit.clicked.connect(self.exit_cam)
 
-    
-        
-        self.lab_time = QtWidgets.QLabel('시간표시', self)
-        self.lab_time.resize(60, 20)
-        self.lab_time.move(5, 460)
-        
-        self.Video_Slider = QtWidgets.QSlider(Qt.Horizontal, self)
-        self.Video_Slider.resize(630, 5)
-        self.Video_Slider.move(70, 470)
-        self.Video_Slider.sliderMoved.connect(self.updatePosition)
 
         self.button_Video_Post_Skip = QtWidgets.QPushButton('-10', self)
         self.button_Video_Post_Skip.resize(30, 30)
@@ -453,39 +443,6 @@ class Video_Btn_Set():                                                  # Video 
         self.record = False 
         self.button_Stop.setEnabled(False)                  # 녹화 유무 변수 초기화
         self.now = datetime.datetime.now().strftime("MST_CAP-%Y-%m-%d-%H:%M:%S")
-
-        self.player.durationChanged.connect(self.getDuration)
-        self.player.positionChanged.connect(self.getPosition)
-    
-    def set_video(self):
-        url_path = "u'file://"+path[0]
-        url = QUrl(url_path)
-
-        self.player = QMediaPlayer()
-        self.player.setMedia(QMediaContent(url))
-    
-    def getDuration(self, d):
-        '''d Is the total length of video captured( ms)'''
-        self.Video_Slider.setRange(0, d)
-        self.Video_Slider.setEnabled(True)
-        self.displayTime(d)
-    
-    # Video real-time location acquisition
-    def getPosition(self, p):
-        self.Video_Slider.setValue(p)
-        self.displayTime(self.Video_Slider.maximum()-p)
-    
-    # Show time remaining
-    def displayTime(self, ms):
-        minutes = int(ms/60000)
-        seconds = int((ms-minutes*60000)/1000)
-        self.lab_time.setText('{}:{}'.format(minutes, seconds))
-    
-    # Update video location with progress bar
-    def updatePosition(self, v):
-        self.player.setPosition(v)
-        self.displayTime(self.Video_Slider.maximum()-v)
-
 
     def video_cap(self):                                # Video 캡쳐 기능
         print('Capture file save : ' + '/home/jin/mst/jin/The_latest_package/Storage_video/')
@@ -544,7 +501,43 @@ class Tracking_Finder(QtWidgets.QDialog, Background_Set):               # 객체
     def append_text(self, args):
         self.tb.append(args)
 
-class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only Video 조작 화면
+class Video_Controller():
+    def video_control_btn_set(self):
+        self.lab_time = QtWidgets.QLabel('00:00', self)
+        self.lab_time.resize(60, 20)
+        self.lab_time.move(5, 460)
+        self.lab_time.setStyleSheet("background-color: #000000;" "color: white;")
+        
+        self.Video_Slider = QtWidgets.QSlider(Qt.Horizontal, self)
+        self.Video_Slider.resize(630, 5)
+        self.Video_Slider.move(70, 470)
+        self.Video_Slider.setStyleSheet("background-color: #000000;" "color: white;")
+
+        self.Video_Slider.valueChanged(self.getDuration())
+        self.Video_Slider.setValue(self.getPosition())
+        self.Video_Slider.sliderMoved.connect(self.updatePosition())
+
+    def getDuration(self, cap):
+        length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.Video_Slider.setRange(0, length)
+        self.Video_Slider.setEnabled(True)
+        self.displayTime(cap)
+    
+    def getPosition(self, p):
+        self.Video_Slider.setValue(p)
+        self.displayTime(self.Video_Slider.setMaximum()-p)
+    
+    def displayTime(self, cap):
+        run_time = cap.get(cv2.CAP_PROP_POS_MSEC)
+        minutes = int(run_time/60000)
+        seconds = int((run_time-minutes*60000)/1000)
+        self.lab_time.setText('{}:{}'.format(minutes, seconds))
+    
+    def updatePosition(self, v):
+        self.Video_Slider.setValue(v)
+        self.displayTime(self.Video_Slider.setMaximum()-v)
+
+class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Video_Controller, Background_Set):   # Only Video 조작 화면
     def __init__(self):                                 # Video 화면 셋팅
         super(Normal_Video, self).__init__()
         self.background_set()
@@ -561,12 +554,17 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only V
         self.label.move(0,0)
 
         self.video_btn_set()
+        self.video_control_btn_set()
         self.show()
         self.video_convert()
 
     def video_convert(self):                            # Video 데이터 Qt 데이터로 변환
         self.cap = cv2.VideoCapture(path[0])
-        self.video_speed = 0.04                             # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
+        self.getDuration(self.cap)
+        # self.getPosition()
+        # self.displayTime()
+        # self.updatePosition()
+        self.video_speed = 0.02                             # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
 
         while True:
             self.ret, self.frame = self.cap.read()
@@ -585,10 +583,10 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only V
             img = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
             h,w,c = img.shape
             qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
-            pixmap = QtGui.QPixmap.fromImage(qImg)
+            self.pixmap = QtGui.QPixmap.fromImage(qImg)
             #pixmap = pixmap.scaledToWidth(640)
-            pixmap = pixmap.scaledToHeight(480)
-            self.label.setPixmap(pixmap)
+            self.pixmap = self.pixmap.scaledToHeight(480)
+            self.label.setPixmap(self.pixmap)
             sleep(self.video_speed)
 
             if self.record == True:

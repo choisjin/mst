@@ -39,3 +39,19 @@ echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
 
 
 
+*python setuptools, pip upgrade
+
+pip install --upgrade setuptools
+
+pip install --upgrade pip
+
+* opencv install
+pip install opencv-python
+
+* motor driver install
+sudo pip install adafruit-pca9685
+
+
+
+
+
