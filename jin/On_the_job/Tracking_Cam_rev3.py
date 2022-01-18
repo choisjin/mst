@@ -294,13 +294,7 @@ class Cam_Btn_Set():                                                    # Cam �
         self.button_REC.resize(65, 30)
         self.button_REC.move(430, 485)
         self.button_REC.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_REC.clicked.connect(self.rec_strat)
-
-        self.button_Stop = QtWidgets.QPushButton('Stop', self)
-        self.button_Stop.resize(65, 30)
-        self.button_Stop.move(500, 485)
-        self.button_Stop.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_Stop.clicked.connect(self.rec_stop)    
+        self.button_REC.clicked.connect(self.rec)
 
         self.button_Exit = QtWidgets.QPushButton('Exit', self)
         self.button_Exit.resize(65, 30)
@@ -311,28 +305,26 @@ class Cam_Btn_Set():                                                    # Cam �
         self.manual = 1
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')         # 인코딩 방식 설정 FourCC(Four Character Code)
         self.record = False                                   # 녹화 유무 변수 초기화
-        self.button_Stop.setEnabled(False)
+        self.start_btn_status = 0
         self.now = datetime.datetime.now().strftime("MST_CAP-%Y-%m-%d-%H:%M:%S")
 
     def camera_cap(self):                               # Cam 캡쳐 기능
         print('Capture file save : ' + '/home/jin/mst/jin/The_latest_package/Storage_camera/')
         cv2.imwrite("/home/jin/mst/jin/The_latest_package/Storage_camera/" + str(self.now) + ".png", self.cv_image)
 
-    def rec_strat(self):                                # Cam 녹화 시작
-        self.button_REC.setEnabled(False)
-        self.button_Stop.setEnabled(True)
-        print('Recording Start!')
-        self.record = True
-        self.video = cv2.VideoWriter("/home/jin/mst/jin/The_latest_package/Storage_camera/" + str(self.now) + ".avi", self.fourcc, 20.0, (self.img.shape[1], self.img.shape[0]))        
-        self.button_REC.setText("REC...")
-
-    def rec_stop(self):                                 # Cam 녹화 중지
-        self.button_REC.setEnabled(True)
-        self.button_Stop.setEnabled(False)
-        print('Record file save : '+ '/home/jin/mst/jin/The_latest_package/Storage_camera/')
-        self.record = False
-        self.video.release()
-        self.button_REC.setText("REC")
+    def rec(self):                                # Video 녹화 시작
+        if self.start_btn_status == 0:
+            self.button_REC.setText("ing..")
+            print('Recording Start!')
+            self.record = True
+            self.video = cv2.VideoWriter("/home/jin/mst/jin/The_latest_package/Storage_video/" + str(self.now) + ".avi", self.fourcc, 30.0, (self.frame.shape[1], self.frame.shape[0]))        
+            self.start_btn_status = 1
+        else:
+            self.button_REC.setText("REC")
+            print('Record file save : '+ '/home/jin/mst/jin/The_latest_package/Storage_video/')
+            self.record = False
+            self.video.release()
+            self.start_btn_status = 0
 
     def controller_open(self):                          # Cam 수동조작 화면 오픈
         if self.manual == 1:
@@ -384,84 +376,93 @@ class Cam_init(object):                                                 # Cam �
 
 class Video_Btn_Set():                                                  # Video 조작 화면 버튼
     def video_btn_set(self):                            # Video 조작 버튼 셋팅
-        self.button_Cap = QtWidgets.QPushButton('Capture', self)
-        self.button_Cap.resize(65, 30)
-        self.button_Cap.move(360, 485)
-        self.button_Cap.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_video_speed_down = QtWidgets.QPushButton('', self)
+        self.button_video_speed_down.resize(32, 32)
+        self.button_video_speed_down.move(5, 5)
+        self.button_video_speed_down.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/minor10.png'); border: none;")
+        self.button_video_speed_down.clicked.connect(self.video_speed_down)
+        
+        self.button_video_speed_up = QtWidgets.QPushButton('', self)
+        self.button_video_speed_up.resize(32, 32)
+        self.button_video_speed_up.move(42, 5)
+        self.button_video_speed_up.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/plus10.png'); border: none;")
+        self.button_video_speed_up.clicked.connect(self.video_speed_up)
+        
+        self.button_Video_Start = QtWidgets.QPushButton('', self)
+        self.button_Video_Start.resize(32, 32)
+        self.button_Video_Start.move(79, 5)
+        self.button_Video_Start.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/pause_b.png'); border: none;")
+        self.button_Video_Start.clicked.connect(self.video_start_stop)
+
+        self.button_Cap = QtWidgets.QPushButton('', self)
+        self.button_Cap.resize(32, 32)
+        self.button_Cap.move(519, 5)
+        self.button_Cap.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/capture.png'); border: none;")
         self.button_Cap.clicked.connect(self.video_cap)
 
-        self.button_REC = QtWidgets.QPushButton('REC', self)
-        self.button_REC.resize(65, 30)
-        self.button_REC.move(430, 485)
-        self.button_REC.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_REC.clicked.connect(self.rec_strat)
+        self.button_REC = QtWidgets.QPushButton('', self)
+        self.button_REC.resize(32, 32)
+        self.button_REC.move(561, 5)
+        self.button_REC.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/REC.png'); border: none;")
+        self.button_REC.clicked.connect(self.rec)     
 
-        self.button_Stop = QtWidgets.QPushButton('Stop', self)
-        self.button_Stop.resize(65, 30)
-        self.button_Stop.move(500, 485)
-        self.button_Stop.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_Stop.clicked.connect(self.rec_stop)        
-
-        self.button_Exit = QtWidgets.QPushButton('Exit', self)
-        self.button_Exit.resize(65, 30)
-        self.button_Exit.move(570, 485)
-        self.button_Exit.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Exit = QtWidgets.QPushButton('', self)
+        self.button_Exit.resize(32, 32)
+        self.button_Exit.move(603, 5)
+        self.button_Exit.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/exit.png'); border: none;")
         self.button_Exit.clicked.connect(self.exit_cam)
-
-
-        self.button_Video_Post_Skip = QtWidgets.QPushButton('-10', self)
-        self.button_Video_Post_Skip.resize(30, 30)
-        self.button_Video_Post_Skip.move(5, 485)
-        self.button_Video_Post_Skip.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        #self.button_Video_Post_Skip.clicked.connect()
-
-        self.button_Video_Rewind = QtWidgets.QPushButton('되', self)
-        self.button_Video_Rewind.resize(30, 30)
-        self.button_Video_Rewind.move(45, 485)
-        self.button_Video_Rewind.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        #self.button_Video_Rewind.clicked.connect()
-
-        self.button_Video_Start = QtWidgets.QPushButton('St', self)
-        self.button_Video_Start.resize(30, 30)
-        self.button_Video_Start.move(85, 485)
-        self.button_Video_Start.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        #self.button_Video_Start.clicked.connect()
-
-        self.button_Video_Fast_Forward = QtWidgets.QPushButton('빨', self)
-        self.button_Video_Fast_Forward.resize(30, 30)
-        self.button_Video_Fast_Forward.move(125, 485)
-        self.button_Video_Fast_Forward.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        #self.button_Video_Fast_Forward.clicked.connect()
-
-        self.button_Video_Next_Skip = QtWidgets.QPushButton('+10', self)
-        self.button_Video_Next_Skip.resize(30, 30)
-        self.button_Video_Next_Skip.move(165, 485)
-        self.button_Video_Next_Skip.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
 
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')       # 인코딩 방식 설정 FourCC(Four Character Code)
         self.record = False 
-        self.button_Stop.setEnabled(False)                  # 녹화 유무 변수 초기화
+        self.rec_btn_status = 0
+        self.start_btn_status = 0
         self.now = datetime.datetime.now().strftime("MST_CAP-%Y-%m-%d-%H:%M:%S")
+
+    def video_speed_up(self):
+        print('speed up!')
+        self.video_speed -= 0.005
+        
+        if self.video_speed < 0.006:
+            self.video_speed = 0.005 
+            print('Max speed')
+    
+    def video_speed_down(self):
+        print('speed down!')
+        self.video_speed += 0.005
+
+        if self.video_speed > 0.06:
+            self.video_speed = 0.06
+            print('Min speed')
+
+    def video_start_stop(self):                                # Video 녹화 시작
+        if self.start_btn_status == 0:
+            self.button_Video_Start.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/play.png'); border: none;")
+            self.pause= True
+            print('Video Stop!')
+            self.start_btn_status = 1
+        else:
+            self.button_Video_Start.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/pause_b.png'); border: none;")
+            self.pause= False
+            print('Video Start!')
+            self.start_btn_status = 0
 
     def video_cap(self):                                # Video 캡쳐 기능
         print('Capture file save : ' + '/home/jin/mst/jin/The_latest_package/Storage_video/')
         cv2.imwrite("/home/jin/mst/jin/The_latest_package/Storage_video/" + str(self.now) + ".png", self.frame)
 
-    def rec_strat(self):                                # Video 녹화 시작
-        self.button_REC.setEnabled(False)
-        self.button_Stop.setEnabled(True)
-        print('Recording Start!')
-        self.record = True
-        self.video = cv2.VideoWriter("/home/jin/mst/jin/The_latest_package/Storage_video/" + str(self.now) + ".avi", self.fourcc, 30.0, (self.frame.shape[1], self.frame.shape[0]))        
-        self.button_REC.setText("REC...")
-
-    def rec_stop(self):                                 # Video 녹화 중지
-        self.button_REC.setEnabled(True)
-        self.button_Stop.setEnabled(False)
-        print('Record file save : '+ '/home/jin/mst/jin/The_latest_package/Storage_video/')
-        self.record = False
-        self.video.release()
-        self.button_REC.setText("REC")
+    def rec(self):                                # Video 녹화 시작
+        if self.rec_btn_status == 0:
+            self.button_REC.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/STOP.png'); border: none;")
+            print('Recording Start!')
+            self.record = True
+            self.video = cv2.VideoWriter("/home/jin/mst/jin/The_latest_package/Storage_video/" + str(self.now) + ".avi", self.fourcc, 30.0, (self.frame.shape[1], self.frame.shape[0]))        
+            self.rec_btn_status = 1
+        else:
+            self.button_REC.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/REC.png'); border: none;")
+            print('Record file save : '+ '/home/jin/mst/jin/The_latest_package/Storage_video/')
+            self.record = False
+            self.video.release()
+            self.rec_btn_status = 0
 
     def exit_cam(self):
         if self.record == True:
@@ -500,25 +501,6 @@ class Tracking_Finder(QtWidgets.QDialog, Background_Set):               # 객체
     def append_text(self, args):
         self.tb.append(args)
 
-class Video_Controller():
-    def video_control_btn_set(self):
-        self.lab_time = QtWidgets.QLabel('00:00', self)
-        self.lab_time.resize(60, 20)
-        self.lab_time.move(5, 460)
-        self.lab_time.setStyleSheet("background-color: #000000;" "color: white;")
-        
-        self.Video_Slider = QtWidgets.QSlider(Qt.Horizontal, self)
-        self.Video_Slider.resize(630, 5)
-        self.Video_Slider.move(70, 470)
-        self.Video_Slider.setStyleSheet("background-color: #000000;" "color: white;")
-        
-        #self.Video_Slider.valueChanged(self.getDuration)
-        #self.Video_Slider.valueChanged(self.getPosition)
-        
-        #self.Video_Slider.valueChanged(self.getDuration())
-        #self.Video_Slider.setValue(self.getPosition())
-        #self.Video_Slider.sliderMoved.connect(self.updatePosition())
-
     def getDuration(self):
         length = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
         self.Video_Slider.setRange(0, length)
@@ -539,7 +521,7 @@ class Video_Controller():
         self.Video_Slider.setValue(v)
         self.displayTime(self.Video_Slider.setMaximum()-v)
 
-class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Video_Controller, Background_Set):   # Only Video 조작 화면
+class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only Video 조작 화면
     def __init__(self):                                 # Video 화면 셋팅
         super(Normal_Video, self).__init__()
         self.background_set()
@@ -552,18 +534,21 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Video_Controller, Backgroun
         self.setFixedSize(width, height)
         self.setGeometry(Position.x()-width-10, Position.y(), width, height)
 
+        self.video_speed = 0.02                         # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
+        self.waitkey = 1
+        self.pause = False
+        
         self.label = QtWidgets.QLabel(self)
-        self.label.move(0,0)
+        self.label.move(0, 37)
 
-        self.lab_time = QtWidgets.QLabel('00:00:00 // 00:00:00', self)
+        self.lab_time = QtWidgets.QLabel('', self)
         self.lab_time.resize(100, 20)
-        self.lab_time.move(5, 460)
-        self.lab_time.setStyleSheet("background-color: #000000;" "color: white;")
+        self.lab_time.move(114, 1)
+        self.lab_time.setStyleSheet("font: 8pt;" "background-color: #FFFFFF;" "color: black;")
         
         self.Video_Slider = QtWidgets.QSlider(Qt.Horizontal, self)
-        self.Video_Slider.resize(520, 10)
-        self.Video_Slider.move(110, 465)
-        #self.Video_Slider.setStyleSheet("background-color: #000000;" "color: white;")
+        self.Video_Slider.resize(400, 10)
+        self.Video_Slider.move(114, 17)
 
         self.video_btn_set()
         self.show()
@@ -571,34 +556,16 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Video_Controller, Backgroun
 
     def video_convert(self):                            # Video 데이터 Qt 데이터로 변환
         self.cap = cv2.VideoCapture(path[0])
-        
-        self.video_speed = 0.0                           # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
+
         self.Video_Slider.sliderMoved.connect(self.slider_change)
-        #self.Video_Slider.valueChanged.connect(self.slider_change)
-        
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)
         self.total_frame = self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
         self.Video_Slider.setRange(0, self.total_frame)
         self.Video_Slider.setEnabled(True)
         
-        self.run_time = self.total_frame/self.fps
-        run_hours = int(self.run_time/3600)
-        run_minutes = int((self.run_time-run_hours*3600)/60)
-        self.run_seconds = int(self.run_time-(run_hours*3600)-(run_minutes*60))
-
         while True:
             self.ret, self.frame = self.cap.read()
-            if self.fps == 0:
-                pass
-            else:
-                play_time = self.cap.get(cv2.CAP_PROP_POS_MSEC)
-                hour = int(play_time/60000/60000)
-                minutes = int(play_time/60000)
-                seconds = int((play_time-minutes*60000)/1000)
-
-                self.Video_Slider.setValue(self.total_frame/self.run_time*seconds)
-                self.lab_time.setText('{}:{}:{} // {}:{}:{}'.format(hour, minutes, seconds, run_hours, run_minutes, self.run_seconds))
-
+            
             if not self.ret:
                 if self.record == True:
                     print('Recording Stop!')
@@ -608,6 +575,23 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Video_Controller, Backgroun
                 else:
                     self.close()
                 break
+            
+            if self.fps == 0:
+                pass
+            else:
+                self.run_time = self.total_frame/self.fps
+                run_hours = int(self.run_time/3600)
+                run_minutes = int((self.run_time-run_hours*3600)/60)
+                self.run_seconds = int(self.run_time-(run_hours*3600)-(run_minutes*60))
+               
+                play_time = self.cap.get(cv2.CAP_PROP_POS_MSEC)
+                hour = int(play_time/60000/60000)
+                minutes = int(play_time/60000)
+                seconds = int((play_time-minutes*60000)/1000)
+                count = play_time/1000
+
+                self.Video_Slider.setValue(self.total_frame/self.run_time*count)
+                self.lab_time.setText('{}:{}:{} // {}:{}:{}'.format(hour, minutes, seconds, run_hours, run_minutes, self.run_seconds))
 
             self.label.resize(640, 480)
             img = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
@@ -615,20 +599,21 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Video_Controller, Backgroun
             qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
             self.pixmap = QtGui.QPixmap.fromImage(qImg)
             self.pixmap = self.pixmap.scaledToWidth(640)
-            self.pixmap = self.pixmap.scaledToHeight(480)
             self.label.setPixmap(self.pixmap)
             sleep(self.video_speed)
 
             if self.record == True:
                 self.video.write(self.frame)
 
+            if self.pause == True:
+                self.cap.set(1, self.total_frame/self.run_time*count)
+
             cv2.waitKey(1)
 
         self.cap.release()
     
     def slider_change(self, v):
-        print(v)
-        self.cap.set(cv2.CAP_PROP_POS_FRAMES, v);
+        self.cap.set(1, v);
         #self.cap.set(cv2.CAP_PROP_POS_AVI_RATIO, v);
     
     def keyPressEvent(self, e):
@@ -675,7 +660,11 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
 
         while True:
             self.ret, self.frame = self.cap.read()
-            faces = faceCascade.detectMultiScale(self.frame, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
+            # scaleFactor = 작은 크기의 윈도우를 이용하여 객체를 검출하고 이후  scaleFactor값의 비율로 검색 윈도우를
+            # 확대하면서 여러 번 객체를 검출(최소 1이상).
+            # minNeighbors = 검출할 객체 영역에서 얼마나 많은 사각형이 중복되어 검출되어야 객체로 인지할지를 지정.
+            # minSize, maxSize = 검출할 객체의 최소, 최대 크기
+            faces = faceCascade.detectMultiScale(self.frame, scaleFactor=1.3, minNeighbors=4, minSize=(50, 50))
             now = datetime.datetime.now().strftime("%m-%d-%H:%M:%S")
 
             if not self.ret:
