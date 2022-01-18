@@ -2,7 +2,6 @@
 # GUI관련 모듈
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import Qt
-from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtCore import QUrl
 
 # Topic통신 관련 모듈
@@ -512,23 +511,26 @@ class Video_Controller():
         self.Video_Slider.resize(630, 5)
         self.Video_Slider.move(70, 470)
         self.Video_Slider.setStyleSheet("background-color: #000000;" "color: white;")
+        
+        #self.Video_Slider.valueChanged(self.getDuration)
+        #self.Video_Slider.valueChanged(self.getPosition)
+        
+        #self.Video_Slider.valueChanged(self.getDuration())
+        #self.Video_Slider.setValue(self.getPosition())
+        #self.Video_Slider.sliderMoved.connect(self.updatePosition())
 
-        self.Video_Slider.valueChanged(self.getDuration())
-        self.Video_Slider.setValue(self.getPosition())
-        self.Video_Slider.sliderMoved.connect(self.updatePosition())
-
-    def getDuration(self, cap):
-        length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    def getDuration(self):
+        length = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
         self.Video_Slider.setRange(0, length)
         self.Video_Slider.setEnabled(True)
-        self.displayTime(cap)
+        self.displayTime(self.cap)
     
     def getPosition(self, p):
         self.Video_Slider.setValue(p)
         self.displayTime(self.Video_Slider.setMaximum()-p)
     
-    def displayTime(self, cap):
-        run_time = cap.get(cv2.CAP_PROP_POS_MSEC)
+    def displayTime(self):
+        run_time = self.cap.get(cv2.CAP_PROP_POS_MSEC)
         minutes = int(run_time/60000)
         seconds = int((run_time-minutes*60000)/1000)
         self.lab_time.setText('{}:{}'.format(minutes, seconds))
@@ -553,21 +555,49 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Video_Controller, Backgroun
         self.label = QtWidgets.QLabel(self)
         self.label.move(0,0)
 
+        self.lab_time = QtWidgets.QLabel('00:00:00 // 00:00:00', self)
+        self.lab_time.resize(100, 20)
+        self.lab_time.move(5, 460)
+        self.lab_time.setStyleSheet("background-color: #000000;" "color: white;")
+        
+        self.Video_Slider = QtWidgets.QSlider(Qt.Horizontal, self)
+        self.Video_Slider.resize(520, 10)
+        self.Video_Slider.move(110, 465)
+        #self.Video_Slider.setStyleSheet("background-color: #000000;" "color: white;")
+
         self.video_btn_set()
-        self.video_control_btn_set()
         self.show()
         self.video_convert()
 
     def video_convert(self):                            # Video 데이터 Qt 데이터로 변환
         self.cap = cv2.VideoCapture(path[0])
-        self.getDuration(self.cap)
-        # self.getPosition()
-        # self.displayTime()
-        # self.updatePosition()
-        self.video_speed = 0.02                             # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
+        
+        self.video_speed = 0.0                           # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
+        self.Video_Slider.sliderMoved.connect(self.slider_change)
+        #self.Video_Slider.valueChanged.connect(self.slider_change)
+        
+        self.fps = self.cap.get(cv2.CAP_PROP_FPS)
+        self.total_frame = self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        self.Video_Slider.setRange(0, self.total_frame)
+        self.Video_Slider.setEnabled(True)
+        
+        self.run_time = self.total_frame/self.fps
+        run_hours = int(self.run_time/3600)
+        run_minutes = int((self.run_time-run_hours*3600)/60)
+        self.run_seconds = int(self.run_time-(run_hours*3600)-(run_minutes*60))
 
         while True:
             self.ret, self.frame = self.cap.read()
+            if self.fps == 0:
+                pass
+            else:
+                play_time = self.cap.get(cv2.CAP_PROP_POS_MSEC)
+                hour = int(play_time/60000/60000)
+                minutes = int(play_time/60000)
+                seconds = int((play_time-minutes*60000)/1000)
+
+                self.Video_Slider.setValue(self.total_frame/self.run_time*seconds)
+                self.lab_time.setText('{}:{}:{} // {}:{}:{}'.format(hour, minutes, seconds, run_hours, run_minutes, self.run_seconds))
 
             if not self.ret:
                 if self.record == True:
@@ -584,7 +614,7 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Video_Controller, Backgroun
             h,w,c = img.shape
             qImg = QtGui.QImage(img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
             self.pixmap = QtGui.QPixmap.fromImage(qImg)
-            #pixmap = pixmap.scaledToWidth(640)
+            self.pixmap = self.pixmap.scaledToWidth(640)
             self.pixmap = self.pixmap.scaledToHeight(480)
             self.label.setPixmap(self.pixmap)
             sleep(self.video_speed)
@@ -595,20 +625,25 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Video_Controller, Backgroun
             cv2.waitKey(1)
 
         self.cap.release()
-
+    
+    def slider_change(self, v):
+        print(v)
+        self.cap.set(cv2.CAP_PROP_POS_FRAMES, v);
+        #self.cap.set(cv2.CAP_PROP_POS_AVI_RATIO, v);
+    
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             if self.record == True:
                 print('Recording Stop!')
                 self.record = False
+                self.finder.close()
+                self.close()
                 self.video.release()
                 self.cap.release()
-                self.finder.close()
-                self.close()
             else:
+                self.close()
                 self.cap.release()
                 self.finder.close()
-                self.close()
 
     def __del__(self):
         print('Video_sys_init...')
