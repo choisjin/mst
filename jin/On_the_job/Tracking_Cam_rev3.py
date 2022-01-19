@@ -2,7 +2,6 @@
 # GUI관련 모듈
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import Qt
-from PyQt5.QtCore import QUrl
 
 # Topic통신 관련 모듈
 import os, sys, rospy, cv2, datetime
@@ -14,7 +13,7 @@ from time import sleep
 
 class Background_Set():                                                 # 배경화면 셋팅
     def background_set(self):
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        #self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         
         pal = QtGui.QPalette()
         pal.setColor(QtGui.QPalette.Background, QtGui.QColor(255, 255, 255))
@@ -102,11 +101,12 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
     def __init__(self):                                 
         super(MainWindow, self).__init__()
         self.initUI()
-        
+
     def initUI(self):                                   # 기능선택 화면 셋팅
         global Main_width
         global Main_height
-
+        
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.background_set()
         
         Main_width = 175
@@ -258,6 +258,11 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
     def exit_btn(self):
         self.close()
     
+    def position_other_window(self):
+        geo = self.geometry()
+        geo.moveLeft(geo.left() + geo.width() + 10)
+        self.controller.setGeometry(geo)
+
     def closeEvent(self, event):
         quit_msg = "Want to Exit?"
         reply = QtWidgets.QMessageBox.question(self, 'Exit', quit_msg, QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Yes)
@@ -278,30 +283,37 @@ class Cam_Btn_Set():                                                    # Cam �
     def cam_btn_set(self, camera):                      # Cam 조작 버튼 셋팅
         self.camera = camera
         
-        self.button_Auto = QtWidgets.QPushButton('Auto', self)
-        self.button_Auto.resize(65, 30)
-        self.button_Auto.move(290, 485)
-        self.button_Auto.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Auto = QtWidgets.QPushButton('', self)
+        self.button_Auto.resize(32, 32)
+        self.button_Auto.move(477, 5)
+        self.button_Auto.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/joypad.png'); border: none;")
         self.button_Auto.clicked.connect(self.controller_open)
 
-        self.button_Cap = QtWidgets.QPushButton('Capture', self)
-        self.button_Cap.resize(65, 30)
-        self.button_Cap.move(360, 485)
-        self.button_Cap.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Cap = QtWidgets.QPushButton('', self)
+        self.button_Cap.resize(32, 32)
+        self.button_Cap.move(519, 5)
+        self.button_Cap.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/capture.png'); border: none;")
         self.button_Cap.clicked.connect(self.camera_cap)
 
-        self.button_REC = QtWidgets.QPushButton('REC', self)
-        self.button_REC.resize(65, 30)
-        self.button_REC.move(430, 485)
-        self.button_REC.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
-        self.button_REC.clicked.connect(self.rec)
+        self.button_REC = QtWidgets.QPushButton('', self)
+        self.button_REC.resize(32, 32)
+        self.button_REC.move(561, 5)
+        self.button_REC.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/REC.png'); border: none;")
+        self.button_REC.clicked.connect(self.rec)     
 
-        self.button_Exit = QtWidgets.QPushButton('Exit', self)
-        self.button_Exit.resize(65, 30)
-        self.button_Exit.move(570, 485)
-        self.button_Exit.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
+        self.button_Exit = QtWidgets.QPushButton('', self)
+        self.button_Exit.resize(32, 32)
+        self.button_Exit.move(603, 5)
+        self.button_Exit.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/exit.png'); border: none;")
         self.button_Exit.clicked.connect(self.exit_cam)
 
+        global cam_window_x
+        global cam_window_y
+        self.cam_window = self.pos()
+        cam_window_x = self.cam_window.x()
+        cam_window_y = self.cam_window.y()
+
+        self.control = 0
         self.manual = 1
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')         # 인코딩 방식 설정 FourCC(Four Character Code)
         self.record = False                                   # 녹화 유무 변수 초기화
@@ -314,26 +326,24 @@ class Cam_Btn_Set():                                                    # Cam �
 
     def rec(self):                                # Video 녹화 시작
         if self.start_btn_status == 0:
-            self.button_REC.setText("ing..")
+            self.button_REC.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/STOP.png'); border: none;")
             print('Recording Start!')
             self.record = True
-            self.video = cv2.VideoWriter("/home/jin/mst/jin/The_latest_package/Storage_video/" + str(self.now) + ".avi", self.fourcc, 30.0, (self.frame.shape[1], self.frame.shape[0]))        
+            self.video = cv2.VideoWriter("/home/jin/mst/jin/The_latest_package/Storage_camera/" + str(self.now) + ".avi", self.fourcc, 30.0, (self.cv_image.shape[1], self.cv_image.shape[0]))        
             self.start_btn_status = 1
         else:
-            self.button_REC.setText("REC")
-            print('Record file save : '+ '/home/jin/mst/jin/The_latest_package/Storage_video/')
+            self.button_REC.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/REC.png'); border: none;")
+            print('Record file save : '+ '/home/jin/mst/jin/The_latest_package/Storage_camera/')
             self.record = False
             self.video.release()
             self.start_btn_status = 0
 
     def controller_open(self):                          # Cam 수동조작 화면 오픈
         if self.manual == 1:
-            self.button_Auto.setText("Manual")
             self.tracking_on_off = 0
             self.control = Camera_Control(self.camera)
             self.manual = 0
         else:
-            self.button_Auto.setText("Auto")
             self.control.close()
             self.tracking_on_off = 1
             self.manual = 1
@@ -483,9 +493,10 @@ class Video_Btn_Set():                                                  # Video 
 class Tracking_Finder(QtWidgets.QDialog, Background_Set):               # 객체 인식시 로그 발생창
     def __init__(self):
         super(Tracking_Finder, self).__init__()
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.background_set()
 
-        height = 250
+        height = 215
         self.setFixedSize(Main_width, height)
         self.setGeometry(Position.x(), Position.y()+Main_height+10, Main_width, height)
 
@@ -530,7 +541,7 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only V
         self.finder.close()
 
         width = 640
-        height = 480 + 40
+        height = 480
         self.setFixedSize(width, height)
         self.setGeometry(Position.x()-width-10, Position.y(), width, height)
 
@@ -539,12 +550,12 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only V
         self.pause = False
         
         self.label = QtWidgets.QLabel(self)
-        self.label.move(0, 37)
+        self.label.move(0, 0)
 
         self.lab_time = QtWidgets.QLabel('', self)
         self.lab_time.resize(100, 20)
         self.lab_time.move(114, 1)
-        self.lab_time.setStyleSheet("font: 8pt;" "background-color: #FFFFFF;" "color: black;")
+        self.lab_time.setStyleSheet("font: 8pt;" "font-weight: bold;" "color: black;")
         
         self.Video_Slider = QtWidgets.QSlider(Qt.Horizontal, self)
         self.Video_Slider.resize(400, 10)
@@ -585,13 +596,13 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only V
                 self.run_seconds = int(self.run_time-(run_hours*3600)-(run_minutes*60))
                
                 play_time = self.cap.get(cv2.CAP_PROP_POS_MSEC)
-                hour = int(play_time/60000/60000)
-                minutes = int(play_time/60000)
-                seconds = int((play_time-minutes*60000)/1000)
+                hour = int(play_time/3600000)
+                minutes = int((play_time-hour*3600000)/60000)
+                seconds = int((play_time-(hour*3600000)-(minutes*60000))/1000)
                 count = play_time/1000
 
                 self.Video_Slider.setValue(self.total_frame/self.run_time*count)
-                self.lab_time.setText('{}:{}:{} // {}:{}:{}'.format(hour, minutes, seconds, run_hours, run_minutes, self.run_seconds))
+                self.lab_time.setText('{}:{}:{} / {}:{}:{}'.format(hour, minutes, seconds, run_hours, run_minutes, self.run_seconds))
 
             self.label.resize(640, 480)
             img = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
@@ -614,7 +625,6 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only V
     
     def slider_change(self, v):
         self.cap.set(1, v);
-        #self.cap.set(cv2.CAP_PROP_POS_AVI_RATIO, v);
     
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
@@ -641,20 +651,39 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
         self.finder = Tracking_Finder()
 
         width = 640
-        height = 480 + 40
+        height = 480
         self.setFixedSize(width, height)
         self.setGeometry(Position.x()-width-10, Position.y(), width, height)
 
-        self.label = QtWidgets.QLabel(self)
-        self.label.move(0,0)
+        self.video_speed = 0.02                         # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
+        self.waitkey = 1
+        self.pause = False
 
+        self.label = QtWidgets.QLabel(self)
+        self.label.move(0, 0)
+
+        self.lab_time = QtWidgets.QLabel('', self)
+        self.lab_time.resize(100, 20)
+        self.lab_time.move(114, 1)
+        self.lab_time.setStyleSheet("font: 8pt;" "font-weight: bold;" "color: black;")
+
+        self.Video_Slider = QtWidgets.QSlider(Qt.Horizontal, self)
+        self.Video_Slider.resize(400, 10)
+        self.Video_Slider.move(114, 17)
+        
         self.video_btn_set()
         self.show()
         self.video_convert()
 
     def video_convert(self):                            # Video 데이터 Qt 데이터로 변환
         self.cap = cv2.VideoCapture(path[0])
-        self.video_speed = 0.015 # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
+        
+        self.Video_Slider.sliderMoved.connect(self.slider_change)
+        self.fps = self.cap.get(cv2.CAP_PROP_FPS)
+        self.total_frame = self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        self.Video_Slider.setRange(0, self.total_frame)
+        self.Video_Slider.setEnabled(True)
+
         faceCascade = cv2.CascadeClassifier(path1[0])
         face_count = 0
 
@@ -678,6 +707,23 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
                     self.cap.release()
                     self.close()
                 break
+            
+            if self.fps == 0:
+                pass
+            else:
+                self.run_time = self.total_frame/self.fps
+                run_hours = int(self.run_time/3600)
+                run_minutes = int((self.run_time-run_hours*3600)/60)
+                self.run_seconds = int(self.run_time-(run_hours*3600)-(run_minutes*60))
+               
+                play_time = self.cap.get(cv2.CAP_PROP_POS_MSEC)
+                hour = int(play_time/3600000)
+                minutes = int((play_time-hour*3600000)/60000)
+                seconds = int((play_time-(hour*3600000)-(minutes*60000))/1000)
+                count = play_time/1000
+
+                self.Video_Slider.setValue(self.total_frame/self.run_time*count)
+                self.lab_time.setText('{}:{}:{} / {}:{}:{}'.format(hour, minutes, seconds, run_hours, run_minutes, self.run_seconds))
 
             if faces == ():
                 face_count = 0
@@ -690,9 +736,6 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
                     face_count = 0
                 cv2.rectangle(self.frame,(x,y),(x+w,y+h),(0,255,0),1)
 
-            if self.record == True:
-                self.video.write(self.frame)
-
             self.label.resize(640, 480)
             img = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
             h,w,c = img.shape
@@ -701,10 +744,19 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
             pixmap = pixmap.scaledToWidth(640)
             self.label.setPixmap(pixmap)
             sleep(self.video_speed)
+
+            if self.record == True:
+                self.video.write(self.frame)
+
+            if self.pause == True:
+                self.cap.set(1, self.total_frame/self.run_time*count)
+
             cv2.waitKey(1)
         
         self.cap.release()
-
+    def slider_change(self, v):
+        self.cap.set(1, v);
+        
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             if self.record == True:
@@ -737,7 +789,7 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):    # Only C
         self.bridge = CvBridge()
 
         width = 640
-        height = 480 + 40
+        height = 480
         self.setFixedSize(width, height)
         self.setGeometry(Position.x()-width-10, Position.y(), width, height)
         
@@ -763,6 +815,19 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):    # Only C
         pixmap = QtGui.QPixmap.fromImage(qImg)
         pixmap = pixmap.scaledToWidth(640)
         self.label.setPixmap(pixmap)
+
+    def moveEvent(self, event):
+        super(Normal_Camera, self).moveEvent(event)
+        if not self.control == 0: 
+            self.cam_window = self.pos()
+            global cam_window_x
+            global cam_window_y
+            cam_window_x = self.cam_window.x()
+            cam_window_y = self.cam_window.y() + 30
+            
+            geo = self.geometry()
+            geo.moveTo(cam_window_x + 650, cam_window_y + 395)
+            self.control.setGeometry(geo)
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
@@ -809,7 +874,7 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         self.bridge = CvBridge()
 
         width = 640
-        height = 480 + 40
+        height = 480
         self.setFixedSize(width, height)
         self.setGeometry(Position.x()-width-10, Position.y(), width, height)
 
@@ -917,11 +982,27 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
                     self.servo_x = manual_msg.data[0]
                     self.servo_y = manual_msg.data[1]
 
+    def moveEvent(self, event):
+        super(Tracking_Camera, self).moveEvent(event)
+        if not self.control == 0: 
+            self.cam_window = self.pos()
+            global cam_window_x
+            global cam_window_y
+            cam_window_x = self.cam_window.x()
+            cam_window_y = self.cam_window.y() + 30
+            
+            geo = self.geometry()
+            geo.moveTo(cam_window_x + 650, cam_window_y + 395)
+            self.control.setGeometry(geo)
+
+            geo1 = self.geometry()
+            geo1.moveTo(cam_window_x + 650, cam_window_y + 180)
+            self.finder.setGeometry(geo1)
+
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             self.cam_init = Cam_init(self.camera)
             self._sub.unregister()
-            self.cam_tracking_pub.unregister()
             if self.manual == 0 and self.record == True:
                 print('Recording Stop!')
                 self.record = False
@@ -947,43 +1028,49 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
     
     def __del__(self):
         print('Camera_sys_init...')
-        
+
 class Camera_Control(QtWidgets.QDialog, Background_Set):                # Cam 수동조작 & 방향키
     def __init__(self, camera):             # Cam 수동조작 화면 셋팅
         super(Camera_Control, self).__init__()
-        self.background_set()
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+
+        pal = QtGui.QPalette()
+        pal.setColor(QtGui.QPalette.Background, QtGui.QColor(255, 255, 255))
+        self.setAutoFillBackground(True)
+        self.setPalette(pal)
 
         self.camera = camera
         print('Cam_Control_Num : %d' % self.camera)
 
-        height = 90
-        self.setFixedSize(Main_width, height)
-        self.setGeometry(Position.x(), Position.y()+520-height, Main_width, height)
+        width = 130
+        height = 85
+        self.setFixedSize(width, height)
+        self.setGeometry(cam_window_x + 650, cam_window_y + 480 - height, width, height)
 
         self.button_Up = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/up.png'),'', self)
         self.button_Up.resize(40, 40)
-        self.button_Up.move(67.5, 5)
+        self.button_Up.move(45, 0)
         self.button_Up.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Up.setFocusPolicy(Qt.NoFocus)
         self.button_Up.clicked.connect(lambda:self.Manual(1))
 
         self.button_Down = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/down.png'),'', self)
         self.button_Down.resize(40, 40)
-        self.button_Down.move(67.5, 46)
+        self.button_Down.move(45, 45)
         self.button_Down.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Down.setFocusPolicy(Qt.NoFocus)
         self.button_Down.clicked.connect(lambda:self.Manual(2))
 
         self.button_Right = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/right.png'),'', self)
         self.button_Right.resize(40, 40)
-        self.button_Right.move(108, 46)
+        self.button_Right.move(90, 45)
         self.button_Right.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Right.setFocusPolicy(Qt.NoFocus)
         self.button_Right.clicked.connect(lambda:self.Manual(3))
 
         self.button_Left = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/left.png'),'', self)
         self.button_Left.resize(40, 40)
-        self.button_Left.move(26.5, 46)
+        self.button_Left.move(0, 45)
         self.button_Left.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Left.setFocusPolicy(Qt.NoFocus)
         self.button_Left.clicked.connect(lambda:self.Manual(4))
