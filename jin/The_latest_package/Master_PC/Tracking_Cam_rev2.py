@@ -744,11 +744,11 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         faces = faceCascade.detectMultiScale(self.cv_image, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
 
         if faces == ():
-                self.face_count = 0    
+            self.face_count = 0    
 
         for (x,y,w,h) in faces:
             self.face_count += 1
-
+            print(self.face_count)
             if self.face_count == 50:
                 now = datetime.datetime.now().strftime("%m-%d-%H:%M:%S")
                 getmsg = now
