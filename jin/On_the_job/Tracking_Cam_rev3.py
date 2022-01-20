@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import Qt
 
 # Topic통신 관련 모듈
-import os, sys, rospy, cv2, datetime
+import os, sys, rospy, cv2, datetime, time
 import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
@@ -23,7 +23,7 @@ class Background_Set():                                                 # 배경
 class LoginForm(QtWidgets.QDialog, Background_Set):                     # 로그인 화면
     def __init__(self):                                 # 로그인 화면 셋팅
         super(LoginForm, self).__init__()
-        
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.background_set()
         
         width = 265
@@ -110,22 +110,22 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
         self.background_set()
         
         Main_width = 175
-        Main_height = 160
+        Main_height = 175
         self.setFixedSize(Main_width, Main_height)
         self.setGeometry(Position.x(), Position.y(), Main_width, Main_height)
         self.setToolBar()      
 
         Path_width = 165
-        Path_height = 30
+        Path_height = 25
         self.filePath = QtWidgets.QLineEdit(self)   # Train파일 경로 출력
         self.filePath.resize(Path_width, Path_height)
         self.filePath.setPlaceholderText('Train file name...')
-        self.filePath.move(5, 75)
+        self.filePath.move(5, 70)
 
         self.videoPath = QtWidgets.QLineEdit(self)  # Video파일 경로 출력
         self.videoPath.resize(Path_width, Path_height)
         self.videoPath.setPlaceholderText('Video file name...')
-        self.videoPath.move(5, 110)
+        self.videoPath.move(5, 130)
 
         self.cb = QtWidgets.QComboBox(self)         # 카메라선택 ComboBox
         self.cb.resize(Path_width, Path_height)
@@ -133,6 +133,14 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
         self.ComboBoxInit()
         self.cb.activated[str].connect(self.Select_Cam)
  
+        self.peple_select_cb = QtWidgets.QComboBox(self)         # 카메라선택 ComboBox
+        self.peple_select_cb.resize(Path_width, Path_height)
+        self.peple_select_cb.move(5, 100)
+        self.People_ComboBoxInit()
+        self.peple_select_cb.activated[str].connect(self.Select_People)
+
+        global people_select
+        people_select = 0
         self.train = 0
         self.video = 0
         self.cam_num = 0
@@ -188,10 +196,17 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
         combo_init = 0                              
         self.cb.setStyleSheet('QComboBox {background-color: #FFFFFF; color: Black;}')
         self.cb.addItem('Select Camera...')         # Default Item 생성
-        
         while combo_init < combo_num :              # ComboBox 생성
             combo_init += 1
             self.cb.addItem('Camera%d' % combo_init) 
+
+    def People_ComboBoxInit(self):
+        self.peple_select_cb.clear()
+        self.peple_select_cb.setStyleSheet('QComboBox {background-color: #FFFFFF; color: Black;}')
+        self.peple_select_cb.addItem('Select People...')
+        self.peple_select_cb.addItem('Man')
+        self.peple_select_cb.addItem('Woman')
+        self.peple_select_cb.addItem('Kid')
 
     def Insert_Train(self):                             # Train 파일 오픈
         global path1
@@ -236,12 +251,25 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
             self.cam_num = int(self.cam_num)
             self.cam_select = 1            
     
+    def Select_People(self, people):
+        global people_select
+        if people == 'Select People...':
+            people_select = 0
+        elif people == 'Man':
+            people_select = 1
+        elif people == 'Woman':
+            people_select = 2
+        elif people == 'Kid':
+            people_select = 3
+
     def Start_btn(self):                                # 기능 실행
         self.filePath.clear()
-       
+
         if self.cam_select == 1 and self.train == 1:
             print('Train_Cam')
             self.train = 0
+            self.peple_select_cb.clear()
+            self.People_ComboBoxInit()
             Tracking_Camera(self.cam_num)
         elif self.cam_select == 1:
             print('Normal_Cam')
@@ -250,6 +278,8 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
             if self.train == 1 and self.video == 1:
                 print('Train & video')
                 self.train = 0
+                self.peple_select_cb.clear()
+                self.People_ComboBoxInit()
                 Tracking_Video()
             elif self.train == 0 and self.video == 1:
                 print('video only')
@@ -257,11 +287,6 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
     
     def exit_btn(self):
         self.close()
-    
-    def position_other_window(self):
-        geo = self.geometry()
-        geo.moveLeft(geo.left() + geo.width() + 10)
-        self.controller.setGeometry(geo)
 
     def closeEvent(self, event):
         quit_msg = "Want to Exit?"
@@ -285,9 +310,15 @@ class Cam_Btn_Set():                                                    # Cam �
         
         self.button_Auto = QtWidgets.QPushButton('', self)
         self.button_Auto.resize(32, 32)
-        self.button_Auto.move(477, 5)
+        self.button_Auto.move(440, 5)
         self.button_Auto.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/joypad.png'); border: none;")
         self.button_Auto.clicked.connect(self.controller_open)
+
+        self.button_Finder = QtWidgets.QPushButton('', self)
+        self.button_Finder.resize(32, 32)
+        self.button_Finder.move(477, 5)
+        self.button_Finder.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/finder.png'); border: none;")
+        self.button_Finder.clicked.connect(self.finder_open)
 
         self.button_Cap = QtWidgets.QPushButton('', self)
         self.button_Cap.resize(32, 32)
@@ -314,7 +345,9 @@ class Cam_Btn_Set():                                                    # Cam �
         cam_window_y = self.cam_window.y()
 
         self.control = 0
+        self.finder = 0
         self.manual = 1
+        self.finder_status = 1
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')         # 인코딩 방식 설정 FourCC(Four Character Code)
         self.record = False                                   # 녹화 유무 변수 초기화
         self.start_btn_status = 0
@@ -324,7 +357,7 @@ class Cam_Btn_Set():                                                    # Cam �
         print('Capture file save : ' + '/home/jin/mst/jin/The_latest_package/Storage_camera/')
         cv2.imwrite("/home/jin/mst/jin/The_latest_package/Storage_camera/" + str(self.now) + ".png", self.cv_image)
 
-    def rec(self):                                # Video 녹화 시작
+    def rec(self):                                      # Video 녹화 시작/중지
         if self.start_btn_status == 0:
             self.button_REC.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/STOP.png'); border: none;")
             print('Recording Start!')
@@ -347,6 +380,14 @@ class Cam_Btn_Set():                                                    # Cam �
             self.control.close()
             self.tracking_on_off = 1
             self.manual = 1
+
+    def finder_open(self):                              # 객체 추적 로그 화면 오픈
+        if self.finder_status == 1:
+            self.finder = Tracking_Finder()
+            self.finder_status = 0
+        else:
+            self.finder.close()
+            self.finder_status = 1
 
     def exit_cam(self):
         self.cam_init = Cam_init(self.camera)
@@ -404,6 +445,12 @@ class Video_Btn_Set():                                                  # Video 
         self.button_Video_Start.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/pause_b.png'); border: none;")
         self.button_Video_Start.clicked.connect(self.video_start_stop)
 
+        self.button_Finder = QtWidgets.QPushButton('', self)
+        self.button_Finder.resize(32, 32)
+        self.button_Finder.move(482, 5)
+        self.button_Finder.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/finder.png'); border: none;")
+        self.button_Finder.clicked.connect(self.finder_open)
+
         self.button_Cap = QtWidgets.QPushButton('', self)
         self.button_Cap.resize(32, 32)
         self.button_Cap.move(519, 5)
@@ -422,13 +469,21 @@ class Video_Btn_Set():                                                  # Video 
         self.button_Exit.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/exit.png'); border: none;")
         self.button_Exit.clicked.connect(self.exit_cam)
 
+        global cam_window_x
+        global cam_window_y
+        self.cam_window = self.pos()
+        cam_window_x = self.cam_window.x()
+        cam_window_y = self.cam_window.y()
+
+        self.finder = 0
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')       # 인코딩 방식 설정 FourCC(Four Character Code)
         self.record = False 
         self.rec_btn_status = 0
         self.start_btn_status = 0
+        self.finder_status = 1
         self.now = datetime.datetime.now().strftime("MST_CAP-%Y-%m-%d-%H:%M:%S")
 
-    def video_speed_up(self):
+    def video_speed_up(self):                           # Video 속도 빠르게
         print('speed up!')
         self.video_speed -= 0.005
         
@@ -436,7 +491,7 @@ class Video_Btn_Set():                                                  # Video 
             self.video_speed = 0.005 
             print('Max speed')
     
-    def video_speed_down(self):
+    def video_speed_down(self):                         # Video 속도 느리게
         print('speed down!')
         self.video_speed += 0.005
 
@@ -444,23 +499,33 @@ class Video_Btn_Set():                                                  # Video 
             self.video_speed = 0.06
             print('Min speed')
 
-    def video_start_stop(self):                                # Video 녹화 시작
+    def video_start_stop(self):                         # Video 녹화 시작
         if self.start_btn_status == 0:
             self.button_Video_Start.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/play.png'); border: none;")
             self.pause= True
+            self.stop_start_status = 1
             print('Video Stop!')
             self.start_btn_status = 1
         else:
             self.button_Video_Start.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/pause_b.png'); border: none;")
             self.pause= False
+            self.stop_start_status = 0
             print('Video Start!')
             self.start_btn_status = 0
+
+    def finder_open(self):                              # 객체 추적 로그 화면 오픈
+        if self.finder_status == 1:
+            self.finder = Tracking_Finder()
+            self.finder_status = 0
+        else:
+            self.finder.close()
+            self.finder_status = 1
 
     def video_cap(self):                                # Video 캡쳐 기능
         print('Capture file save : ' + '/home/jin/mst/jin/The_latest_package/Storage_video/')
         cv2.imwrite("/home/jin/mst/jin/The_latest_package/Storage_video/" + str(self.now) + ".png", self.frame)
 
-    def rec(self):                                # Video 녹화 시작
+    def rec(self):                                      # Video 녹화 시작/중지
         if self.rec_btn_status == 0:
             self.button_REC.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/STOP.png'); border: none;")
             print('Recording Start!')
@@ -475,31 +540,43 @@ class Video_Btn_Set():                                                  # Video 
             self.rec_btn_status = 0
 
     def exit_cam(self):
-        if self.record == True:
+        global people_select
+        if self.record == True and self.finder_status == 0:
             print('Recording Stop!')
             self.record = False
             self.video.release()
             self.cap.release()
             self.finder.close()
-            global normal_check
-            normal_check = 0
+            people_select = 0
+            self.close()
+        elif self.record == True:
+            print('Recording Stop!')
+            self.record = False
+            self.video.release()
+            self.cap.release()
+            people_select = 0
+            self.close()
+        elif self.finder_status == 0:
+            self.cap.release()
+            self.finder.close()
+            people_select = 0
             self.close()
         else:
             self.cap.release()
-            self.finder.close()
-            normal_check = 0
+            people_select = 0
             self.close()
 
-class Tracking_Finder(QtWidgets.QDialog, Background_Set):               # 객체 인식시 로그 발생창
+class Tracking_Finder(QtWidgets.QDialog, Background_Set):               # 객체 인식시 로그 확인 화면
     def __init__(self):
         super(Tracking_Finder, self).__init__()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.background_set()
 
-        height = 215
-        self.setFixedSize(Main_width, height)
-        self.setGeometry(Position.x(), Position.y()+Main_height+10, Main_width, height)
-
+        width = 175
+        height = 205
+        self.setFixedSize(width, height)
+        self.setGeometry(cam_window_x + 650, cam_window_y + 180, width, height)
+        
         self.tb = QtWidgets.QTextBrowser()
         self.tb.setAcceptRichText(True)
         self.tb.setOpenExternalLinks(True)
@@ -507,38 +584,16 @@ class Tracking_Finder(QtWidgets.QDialog, Background_Set):               # 객체
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.tb, 0)
         self.setLayout(vbox)
+        
         self.show()
 
     def append_text(self, args):
         self.tb.append(args)
 
-    def getDuration(self):
-        length = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        self.Video_Slider.setRange(0, length)
-        self.Video_Slider.setEnabled(True)
-        self.displayTime(self.cap)
-    
-    def getPosition(self, p):
-        self.Video_Slider.setValue(p)
-        self.displayTime(self.Video_Slider.setMaximum()-p)
-    
-    def displayTime(self):
-        run_time = self.cap.get(cv2.CAP_PROP_POS_MSEC)
-        minutes = int(run_time/60000)
-        seconds = int((run_time-minutes*60000)/1000)
-        self.lab_time.setText('{}:{}'.format(minutes, seconds))
-    
-    def updatePosition(self, v):
-        self.Video_Slider.setValue(v)
-        self.displayTime(self.Video_Slider.setMaximum()-v)
-
 class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only Video 조작 화면
     def __init__(self):                                 # Video 화면 셋팅
         super(Normal_Video, self).__init__()
         self.background_set()
-
-        self.finder = Tracking_Finder()
-        self.finder.close()
 
         width = 640
         height = 480
@@ -558,10 +613,12 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only V
         self.lab_time.setStyleSheet("font: 8pt;" "font-weight: bold;" "color: black;")
         
         self.Video_Slider = QtWidgets.QSlider(Qt.Horizontal, self)
-        self.Video_Slider.resize(400, 10)
+        self.Video_Slider.resize(363, 10)
         self.Video_Slider.move(114, 17)
 
         self.video_btn_set()
+        self.button_Finder.setEnabled(False)
+        self.button_Finder.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/finder_none.png'); border: none;")
         self.show()
         self.video_convert()
 
@@ -631,14 +688,12 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only V
             if self.record == True:
                 print('Recording Stop!')
                 self.record = False
-                self.finder.close()
-                self.close()
                 self.video.release()
                 self.cap.release()
+                self.close()
             else:
                 self.close()
                 self.cap.release()
-                self.finder.close()
 
     def __del__(self):
         print('Video_sys_init...')
@@ -647,8 +702,6 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
     def __init__(self):                                 # Train & Video 화면 셋팅
         super(Tracking_Video, self).__init__()
         self.background_set()
-
-        self.finder = Tracking_Finder()
 
         width = 640
         height = 480
@@ -668,14 +721,14 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
         self.lab_time.setStyleSheet("font: 8pt;" "font-weight: bold;" "color: black;")
 
         self.Video_Slider = QtWidgets.QSlider(Qt.Horizontal, self)
-        self.Video_Slider.resize(400, 10)
+        self.Video_Slider.resize(363, 10)
         self.Video_Slider.move(114, 17)
         
         self.video_btn_set()
         self.show()
         self.video_convert()
 
-    def video_convert(self):                            # Video 데이터 Qt 데이터로 변환
+    def video_convert(self):                            # Video 데이터 Qt 데이터로 변환 및 객체 추적 정보 Publish
         self.cap = cv2.VideoCapture(path[0])
         
         self.Video_Slider.sliderMoved.connect(self.slider_change)
@@ -685,7 +738,8 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
         self.Video_Slider.setEnabled(True)
 
         faceCascade = cv2.CascadeClassifier(path1[0])
-        face_count = 0
+        self.face_count = 0
+        self.stop_start_status = 0
 
         while True:
             self.ret, self.frame = self.cap.read()
@@ -694,7 +748,7 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
             # minNeighbors = 검출할 객체 영역에서 얼마나 많은 사각형이 중복되어 검출되어야 객체로 인지할지를 지정.
             # minSize, maxSize = 검출할 객체의 최소, 최대 크기
             faces = faceCascade.detectMultiScale(self.frame, scaleFactor=1.3, minNeighbors=4, minSize=(50, 50))
-            now = datetime.datetime.now().strftime("%m-%d-%H:%M:%S")
+            now = datetime.datetime.now()
 
             if not self.ret:
                 if self.record == True:
@@ -717,24 +771,45 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
                 self.run_seconds = int(self.run_time-(run_hours*3600)-(run_minutes*60))
                
                 play_time = self.cap.get(cv2.CAP_PROP_POS_MSEC)
-                hour = int(play_time/3600000)
-                minutes = int((play_time-hour*3600000)/60000)
-                seconds = int((play_time-(hour*3600000)-(minutes*60000))/1000)
+                hours = int(play_time/3600000)
+                minutes = int((play_time-hours*3600000)/60000)
+                seconds = int((play_time-(hours*3600000)-(minutes*60000))/1000)
                 count = play_time/1000
 
                 self.Video_Slider.setValue(self.total_frame/self.run_time*count)
-                self.lab_time.setText('{}:{}:{} / {}:{}:{}'.format(hour, minutes, seconds, run_hours, run_minutes, self.run_seconds))
+                self.lab_time.setText('{}:{}:{} / {}:{}:{}'.format(hours, minutes, seconds, run_hours, run_minutes, self.run_seconds))
 
             if faces == ():
-                face_count = 0
-
+                self.face_count = 0
+            
+            get_target = 0
+            
             for (x,y,w,h) in faces:
-                face_count += 1
-                if face_count == 50:
-                    getmsg = now
+                self.face_count += 1
+                if self.face_count == 50 and not self.finder == 0 and self.stop_start_status == 0:
+                    get_second = play_time/1000
+                    getmsg = 'Get_time\n' + '{}:{}:{}'.format(hours, minutes, seconds)
+                    getmsg1 = 'Elapsed_time\n' + str(now - datetime.datetime.fromtimestamp(os.path.getctime(path[0]) - (self.run_time) + get_second))
                     self.finder.append_text(getmsg)
-                    face_count = 0
+                    self.finder.append_text(getmsg1)
+                    self.face_count = 0
+                    get_target = 1
                 cv2.rectangle(self.frame,(x,y),(x+w,y+h),(0,255,0),1)
+                
+                ########################################################### server 전송 부 ###########################################################
+                if get_target == 1 and self.face_count == 0:
+                    if not people_select == 0:
+                            
+                            print('Tracking to Video')
+                            print('Get_missing_running_time : ' + '{}:{}:{}'.format(hours, minutes, seconds))
+                            print('Elapsed time : ' + str(now - datetime.datetime.fromtimestamp(os.path.getctime(path[0]) - (self.run_time) + get_second)))
+                            print('People_Num : ' + '%d' % people_select)
+                            print('Cam_Num : ' + '%s' % self.cam_num)
+                    else:
+                        print('Tracking to Video')
+                        print('Get_Tracking_Time : ' + '%s' % datetime.datetime.fromtimestamp(os.path.getctime(path[0]) - (self.run_time) + get_second))
+                        print('Elapsed time : ' + str(now - datetime.datetime.fromtimestamp(os.path.getctime(path[0]) - (self.run_time) + get_second)))
+                ########################################################### server 전송 부 ###########################################################
 
             self.label.resize(640, 480)
             img = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
@@ -754,23 +829,50 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
             cv2.waitKey(1)
         
         self.cap.release()
+    
     def slider_change(self, v):
         self.cap.set(1, v);
         
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
-            if self.record == True:
+            global people_select
+            if self.record == True and self.finder_status == 0:
                 print('Recording Stop!')
                 self.record = False
                 self.video.release()
                 self.cap.release()
                 self.finder.close()
+                people_select = 0
+                self.close()
+            elif self.record == True:
+                print('Recording Stop!')
+                self.record = False
+                self.video.release()
+                self.cap.release()
+                people_select = 0
+                self.close()
+            elif self.finder_status == 0:
+                self.cap.release()
+                self.finder.close()
+                people_select = 0
                 self.close()
             else:
                 self.cap.release()
-                self.finder.close()
+                people_select = 0
                 self.close()
-
+    
+    def moveEvent(self, event):                         # 화면 이동시 관련 창 동시 이동
+        super(Tracking_Video, self).moveEvent(event)
+        self.cam_window = self.pos()
+        global cam_window_x
+        global cam_window_y
+        cam_window_x = self.cam_window.x()
+        cam_window_y = self.cam_window.y()
+        if not self.finder == 0:
+            geo1 = self.geometry()
+            geo1.moveTo(cam_window_x + 650, cam_window_y + 200)
+            self.finder.setGeometry(geo1)
+    
     def __del__(self):
         print('Video_sys_init...')
 
@@ -778,9 +880,6 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):    # Only C
     def __init__(self, camera):                         # Only Cam 화면 셋팅 및 Cam데이터 Subs
         super(Normal_Camera, self).__init__()
         self.background_set()
-
-        self.finder = Tracking_Finder()
-        self.finder.close()
         
         self.camera = camera  
         rospy.init_node('cam_sub%s' % camera, anonymous = False)
@@ -799,9 +898,11 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):    # Only C
         normal_check = 1
 
         self.cam_btn_set(camera)
+        self.button_Finder.setEnabled(False)
+        self.button_Finder.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/finder_none.png'); border: none;")
         self.show()    
 
-    def callback(self, data):                           # Cam 데이터 Qt 변환
+    def callback(self, data):                           # Cam 데이터 Qt 데이터로 변환
         self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         
         if self.record == True:
@@ -816,17 +917,16 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):    # Only C
         pixmap = pixmap.scaledToWidth(640)
         self.label.setPixmap(pixmap)
 
-    def moveEvent(self, event):
+    def moveEvent(self, event):                         # 화면 이동시 관련 창 동시 이동
         super(Normal_Camera, self).moveEvent(event)
+        self.cam_window = self.pos()
+        global cam_window_x
+        global cam_window_y
+        cam_window_x = self.cam_window.x()
+        cam_window_y = self.cam_window.y() 
         if not self.control == 0: 
-            self.cam_window = self.pos()
-            global cam_window_x
-            global cam_window_y
-            cam_window_x = self.cam_window.x()
-            cam_window_y = self.cam_window.y() + 30
-            
             geo = self.geometry()
-            geo.moveTo(cam_window_x + 650, cam_window_y + 395)
+            geo.moveTo(cam_window_x + 650, cam_window_y + 425)
             self.control.setGeometry(geo)
 
     def keyPressEvent(self, e):
@@ -837,23 +937,19 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):    # Only C
                 print('Recording Stop!')
                 self.record = False
                 self.control.close()
-                self.finder.close()
                 global normal_check
                 normal_check = 0
                 self.close() 
             elif self.record == True:
                 print('Recording Stop!')
                 self.record = False
-                self.finder.close()
                 normal_check = 0
                 self.close() 
             elif self.manual == 0:
                 self.control.close()
-                self.finder.close()
                 normal_check = 0
                 self.close()                
             else:
-                self.finder.close()
                 normal_check = 0
                 self.close()
 
@@ -864,8 +960,6 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
     def __init__(self, camera):                         # Train & Video 화면 셋팅 및 Cam데이터 Subs
         super(Tracking_Camera, self).__init__()
         self.background_set()
-
-        self.finder = Tracking_Finder()
 
         self.camera = camera
         rospy.init_node('cam_sub%s' % camera, anonymous = False)
@@ -882,7 +976,6 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         self.label.move(0,0)
 
         self.cam_btn_set(camera)
-
         self.show()
 
         global normal_check
@@ -912,7 +1005,7 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         for (x,y,w,h) in faces:
             self.face_count += 1
 
-            if self.face_count == 50:
+            if self.face_count == 50 and not self.finder == 0:
                 now = datetime.datetime.now().strftime("%m-%d-%H:%M:%S")
                 getmsg = now
                 self.finder.append_text(getmsg)
@@ -978,59 +1071,75 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         pixmap = pixmap.scaledToWidth(640)
         self.label.setPixmap(pixmap)
 
-    def callback_manual(self, manual_msg):
+    def callback_manual(self, manual_msg):              # Cam 데이터 Qt 데이터로 변환 및 객체 추적 정보 Publish
                     self.servo_x = manual_msg.data[0]
                     self.servo_y = manual_msg.data[1]
 
-    def moveEvent(self, event):
+    def moveEvent(self, event):                         # 화면 이동시 관련 창 동시 이동
         super(Tracking_Camera, self).moveEvent(event)
+        self.cam_window = self.pos()
+        global cam_window_x
+        global cam_window_y
+        cam_window_x = self.cam_window.x()
+        cam_window_y = self.cam_window.y()
         if not self.control == 0: 
-            self.cam_window = self.pos()
-            global cam_window_x
-            global cam_window_y
-            cam_window_x = self.cam_window.x()
-            cam_window_y = self.cam_window.y() + 30
-            
             geo = self.geometry()
-            geo.moveTo(cam_window_x + 650, cam_window_y + 395)
+            geo.moveTo(cam_window_x + 650, cam_window_y + 425)
             self.control.setGeometry(geo)
-
+        
+        if not self.finder == 0:
             geo1 = self.geometry()
-            geo1.moveTo(cam_window_x + 650, cam_window_y + 180)
+            geo1.moveTo(cam_window_x + 650, cam_window_y + 200)
             self.finder.setGeometry(geo1)
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             self.cam_init = Cam_init(self.camera)
             self._sub.unregister()
-            if self.manual == 0 and self.record == True:
+            if self.manual == 0 and self.record == True and self.finder_status == 0:
                 print('Recording Stop!')
                 self.record = False
                 self.tracking_on_off = 0
                 self.control.close()
+                self.finder.close()
+                self.close()
+            elif self.manual == 0 and self.record == True:
+                print('Recording Stop!')
+                self.record = False
+                self.tracking_on_off = 0
+                self.control.close()
+                self.close()
+            elif self.record == True and self.finder_status == 0:
+                print('Recording Stop!')
+                self.record = False
+                self.finder.close()
+                self.close()
+            elif self.manual == 0 and self.finder_status == 0:
+                self.tracking_on_off = 0
+                self.control.close()
+                self.finder.close()
+                self.close()
+            elif self.finder_status == 0:
                 self.finder.close()
                 self.close()
             elif self.record == True:
                 print('Recording Stop!')
                 self.record = False
                 self.tracking_on_off = 0
-                self.finder.close()
                 self.close()
             elif self.manual == 0:
                 self.control.close()
                 self.tracking_on_off = 0
-                self.finder.close()
                 self.close()
             else:
                 self.tracking_on_off = 0
-                self.finder.close()
                 self.close()
     
     def __del__(self):
         print('Camera_sys_init...')
 
 class Camera_Control(QtWidgets.QDialog, Background_Set):                # Cam 수동조작 & 방향키
-    def __init__(self, camera):             # Cam 수동조작 화면 셋팅
+    def __init__(self, camera):                         # Cam 수동조작 화면 셋팅
         super(Camera_Control, self).__init__()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
 
@@ -1082,7 +1191,7 @@ class Camera_Control(QtWidgets.QDialog, Background_Set):                # Cam �
             pass
         self.show()
 
-    def Manual(self, args):                             # Cam 수동조작 Topic 발행
+    def Manual(self, args):                             # Cam 수동조작 Publish
         self.args = args
         if not normal_check == 1:
             self.servo_x = manual_servo_x
