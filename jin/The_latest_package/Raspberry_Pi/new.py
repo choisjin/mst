@@ -28,12 +28,7 @@ def set_servo_pulse(channel, pulse):
 
 class Cam_Publisher():
     def __call__(self):
-        if Camera_number == '1':
-            cam_number = 0
-        else:
-            cam_number = Camera_number
-        
-        cap = cv2.VideoCapture(cam_number)               
+        cap = cv2.VideoCapture(0)               
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
         cap.set(cv2.CAP_PROP_FPS, 30)    
@@ -66,7 +61,7 @@ class Tracking_Subscriber():
         pwm.set_pwm(1, 0, servo_x)
         pwm.set_pwm(0, 0, servo_y)
 
-    def __def__(self):
+    def __del__(self):
         print("p2_exit")
 
 class Manual_Subscriber():
@@ -82,7 +77,7 @@ class Manual_Subscriber():
         pwm.set_pwm(1, 0, servo_x)
         pwm.set_pwm(0, 0, servo_y)
 
-    def __def__(self):
+    def __del__(self):
         print("p3_exit")
 
 class Cam_Init():
@@ -98,7 +93,7 @@ class Cam_Init():
         pwm.set_pwm(1, 0, servo_x)
         pwm.set_pwm(0, 0, servo_y)
     
-    def __def__(self):
+    def __del__(self):
         print("p4_exit")
 try:    
     p1 = Process(target = Cam_Publisher())          # Cam_data Publisher

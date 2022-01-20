@@ -391,28 +391,45 @@ class Cam_Btn_Set():                                                    # Cam �
 
     def exit_cam(self):
         self.cam_init = Cam_init(self.camera)
-        if self.manual == 0 and self.record == True:
+        self._sub.unregister()
+        if self.manual == 0 and self.record == True and self.finder_status == 0:
             print('Recording Stop!')
             self.record = False
             self.tracking_on_off = 0
             self.control.close()
             self.finder.close()
-            self.close() 
+            self.close()
+        elif self.manual == 0 and self.record == True:
+            print('Recording Stop!')
+            self.record = False
+            self.tracking_on_off = 0
+            self.control.close()
+            self.close()
+        elif self.record == True and self.finder_status == 0:
+            print('Recording Stop!')
+            self.record = False
+            self.finder.close()
+            self.close()
+        elif self.manual == 0 and self.finder_status == 0:
+            self.tracking_on_off = 0
+            self.control.close()
+            self.finder.close()
+            self.close()
+        elif self.finder_status == 0:
+            self.finder.close()
+            self.close()
         elif self.record == True:
             print('Recording Stop!')
             self.record = False
             self.tracking_on_off = 0
-            self.finder.close()
-            self.close() 
+            self.close()
         elif self.manual == 0:
-            self.tracking_on_off = 0
             self.control.close()
-            self.finder.close()
-            self.close()                
+            self.tracking_on_off = 0
+            self.close()
         else:
             self.tracking_on_off = 0
-            self.finder.close()
-            self.close() 
+            self.close()
 
 class Cam_init(object):                                                 # Cam 위치 초기화
     def __init__(self, camera):
@@ -518,8 +535,8 @@ class Video_Btn_Set():                                                  # Video 
             self.finder = Tracking_Finder()
             self.finder_status = 0
         else:
-            self.finder.close()
             self.finder_status = 1
+            self.finder.close()
 
     def video_cap(self):                                # Video 캡쳐 기능
         print('Capture file save : ' + '/home/jin/mst/jin/The_latest_package/Storage_video/')
@@ -577,14 +594,14 @@ class Tracking_Finder(QtWidgets.QDialog, Background_Set):               # 객체
         self.setFixedSize(width, height)
         self.setGeometry(cam_window_x + 650, cam_window_y + 180, width, height)
         
-        self.tb = QtWidgets.QTextBrowser()
-        self.tb.setAcceptRichText(True)
-        self.tb.setOpenExternalLinks(True)
+        #self.tb = QtWidgets.QTextBrowser()
+        self.tb = QtWidgets.QTextEdit()
+        # self.tb.setAcceptRichText(True)
+        # self.tb.setOpenExternalLinks(True)
 
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.tb, 0)
         self.setLayout(vbox)
-        
         self.show()
 
     def append_text(self, args):
@@ -741,6 +758,8 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
         self.face_count = 0
         self.stop_start_status = 0
 
+        missing_count = 0
+        
         while True:
             self.ret, self.frame = self.cap.read()
             # scaleFactor = 작은 크기의 윈도우를 이용하여 객체를 검출하고 이후  scaleFactor값의 비율로 검색 윈도우를
@@ -788,28 +807,28 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
                 self.face_count += 1
                 if self.face_count == 50 and not self.finder == 0 and self.stop_start_status == 0:
                     get_second = play_time/1000
-                    getmsg = 'Get_time\n' + '{}:{}:{}'.format(hours, minutes, seconds)
+                    getmsg = 'Catch_time\n' + '{}:{}:{}'.format(hours, minutes, seconds)
                     getmsg1 = 'Elapsed_time\n' + str(now - datetime.datetime.fromtimestamp(os.path.getctime(path[0]) - (self.run_time) + get_second))
                     self.finder.append_text(getmsg)
                     self.finder.append_text(getmsg1)
                     self.face_count = 0
+                    missing_count = 0
                     get_target = 1
                 cv2.rectangle(self.frame,(x,y),(x+w,y+h),(0,255,0),1)
                 
-                ########################################################### server 전송 부 ###########################################################
-                if get_target == 1 and self.face_count == 0:
-                    if not people_select == 0:
-                            
-                            print('Tracking to Video')
-                            print('Get_missing_running_time : ' + '{}:{}:{}'.format(hours, minutes, seconds))
-                            print('Elapsed time : ' + str(now - datetime.datetime.fromtimestamp(os.path.getctime(path[0]) - (self.run_time) + get_second)))
-                            print('People_Num : ' + '%d' % people_select)
-                            print('Cam_Num : ' + '%s' % self.cam_num)
-                    else:
-                        print('Tracking to Video')
-                        print('Get_Tracking_Time : ' + '%s' % datetime.datetime.fromtimestamp(os.path.getctime(path[0]) - (self.run_time) + get_second))
-                        print('Elapsed time : ' + str(now - datetime.datetime.fromtimestamp(os.path.getctime(path[0]) - (self.run_time) + get_second)))
-                ########################################################### server 전송 부 ###########################################################
+            ################################################################ server 전송 부 ################################################################
+            if get_target == 1 or not missing_count == 0:
+                if not people_select == 0:     
+                    missing_count += 1
+                    print(missing_count)
+                    print('Elapsed time : ' + str(now - datetime.datetime.fromtimestamp(os.path.getctime(path[0]) - (self.run_time) + get_second)))
+                    print('People_Num : ' + '%d' % people_select)
+                    # print('Cam_Num : ' + '%s' % self.cam_num)
+                else:
+                    # print('Tracking to Video')
+                    print('Missing_Time : ' + '{}:{}:{}'.format(hours, minutes, seconds))
+                    print('Elapsed time : ' + str(now - datetime.datetime.fromtimestamp(os.path.getctime(path[0]) - (self.run_time) + get_second)))
+            ################################################################ server 전송 부 ################################################################
 
             self.label.resize(640, 480)
             img = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
@@ -960,7 +979,7 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
     def __init__(self, camera):                         # Train & Video 화면 셋팅 및 Cam데이터 Subs
         super(Tracking_Camera, self).__init__()
         self.background_set()
-
+        
         self.camera = camera
         rospy.init_node('cam_sub%s' % camera, anonymous = False)
         self._sub = rospy.Subscriber('/cam_num%s' % camera, Image, self.callback, queue_size=1)
@@ -985,10 +1004,15 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         self.servo_y = 390
 
         self.tracking_on_off = 1
-
+        
+        self.txt_num = 0
+        self.get_target = 0
         self.face_count = 0
         self.init_count = 0
-
+        self.missing_count = 0
+        self.miss_count = 1
+        self.catch_count = 0
+    
     def callback(self, data):                           # Cam 데이터 Qt 데이터로 변환 및 객체 인식에 따른 모터 구동 Pub
         midScreenX = 320/2    # 화면 x축 중앙
         midScreenY = 240/2    # 화면 y축 중앙
@@ -998,21 +1022,33 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         self.cv_image = np.uint8(self.cv_image)
         faceCascade = cv2.CascadeClassifier(path1[0])
         faces = faceCascade.detectMultiScale(self.cv_image, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
-
+        
         if faces == ():
-                self.face_count = 0    
+            self.face_count = 0    
+            self.catch_count = 0
+            if self.miss_count == 0:
+                self.get_target = 1
+                self.miss_count = 1
+                self.miss_msg = 0
 
         for (x,y,w,h) in faces:
             self.face_count += 1
-
             if self.face_count == 50 and not self.finder == 0:
+                self.get_target = 0
                 now = datetime.datetime.now().strftime("%m-%d-%H:%M:%S")
-                getmsg = now
+                getmsg = 'Catch_time\n' + now
                 self.finder.append_text(getmsg)
-                self.face_count = 0
-            elif faces == ():
-                self.face_count = 0
-           
+                self.face_count = 50
+                self.missing_count = 0
+
+            if self.face_count > 50:
+                self.catch_count += 1
+                self.txt_num += 1
+                if self.catch_count == 50:
+                    getmsg = 'Catching...'
+                    self.finder.append_text(getmsg)
+                    self.catch_count = 0
+                    self.miss_count = 0
             cv2.rectangle(self.cv_image,(x,y),(x+w,y+h),(0,255,0),1)
 
             if self.tracking_on_off == 1:
@@ -1052,6 +1088,33 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
                 manual_servo_y = self.servo_y
             else :
                 pass
+
+        ################################################################ server 전송 부 ################################################################
+        if self.get_target == 1:
+            self.missing_count += 1
+            self.txt_num += 1
+            if not people_select == 0:     
+                if self.missing_count%50 == 0:
+                    if self.miss_msg == 0:
+                        self.now1 = datetime.datetime.now()
+                        getmsg = 'Missed!!!\n' + str(self.now1)
+                        self.finder.append_text(getmsg)
+                        self.miss_msg = 1
+                    elif not self.miss_msg == 0:
+                        now2 = datetime.datetime.now()
+                        getmsg = 'Missing...\n' + str(now2 - self.now1)
+                        self.finder.append_text(getmsg)
+                #print('Cam_Num : ' + '%s' % self.camera)
+                #print('People_Num : ' + '%d' % people_select)
+                #print('Elapsed time : ' + str(now1-))
+            else:
+                print(self.missing_count)
+                print('Cam_Num : ' + '%s' % self.camera)
+                #print('Elapsed time : ' + str(now))
+        ################################################################ server 전송 부 ################################################################        
+        # if self.txt_num > 10:
+            # self.finder.tb.clear()
+            # self.txt_num = 0
 
         manual_servo_x = self.servo_x
         manual_servo_y = self.servo_y
