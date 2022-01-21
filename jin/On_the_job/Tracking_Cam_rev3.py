@@ -10,6 +10,9 @@ from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from std_msgs.msg import UInt16MultiArray
 from time import sleep
+import pymysql
+
+
 
 class Background_Set():                                                 # 배경화면 셋팅
     def background_set(self):
@@ -139,8 +142,7 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
         self.People_ComboBoxInit()
         self.peple_select_cb.activated[str].connect(self.Select_People)
 
-        global people_select
-        people_select = 0
+        self.people_select = 0
         self.train = 0
         self.video = 0
         self.cam_num = 0
@@ -192,13 +194,12 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
     def ComboBoxInit(self):                             # ComboBox 초기화
         self.cb.clear()                             # ComboBox 모두 지우기
         self.cam_num = 0
-        combo_num = 2                               # ComboBox 생성 갯수
-        combo_init = 0                              
+        need_num = 2
+        combo_num = 0                               # ComboBox 생성 갯수                              
         self.cb.setStyleSheet('QComboBox {background-color: #FFFFFF; color: Black;}')
         self.cb.addItem('Select Camera...')         # Default Item 생성
-        while combo_init < combo_num :              # ComboBox 생성
-            combo_init += 1
-            self.cb.addItem('Camera%d' % combo_init) 
+        for combo_num in range(1, need_num+1):              # ComboBox 생성
+            self.cb.addItem('Camera%d' % combo_num) 
 
     def People_ComboBoxInit(self):
         self.peple_select_cb.clear()
@@ -212,7 +213,7 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
         global path1
 
         self.filePath.clear()
-        path1 = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', '', 'xml File(*.xml)')
+        path1 = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', '', 'mp4 File(*.xml)') #################################### 파일 확장자 변경 한태민
         self.filePath.setText(path1[0])
         
         if path1[0] == '':
@@ -252,15 +253,14 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
             self.cam_select = 1            
     
     def Select_People(self, people):
-        global people_select
         if people == 'Select People...':
-            people_select = 0
+            self.people_select = 0
         elif people == 'Man':
-            people_select = 1
+            self.people_select = 1
         elif people == 'Woman':
-            people_select = 2
+            self.people_select = 2
         elif people == 'Kid':
-            people_select = 3
+            self.people_select = 3
 
     def Start_btn(self):                                # 기능 실행
         self.filePath.clear()
@@ -270,7 +270,7 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
             self.train = 0
             self.peple_select_cb.clear()
             self.People_ComboBoxInit()
-            Tracking_Camera(self.cam_num)
+            Tracking_Camera(self.cam_num, self.people_select)
         elif self.cam_select == 1:
             print('Normal_Cam')
             Normal_Camera(self.cam_num)
@@ -280,7 +280,7 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
                 self.train = 0
                 self.peple_select_cb.clear()
                 self.People_ComboBoxInit()
-                Tracking_Video()
+                Tracking_Video(self.cam_num, self.people_select)
             elif self.train == 0 and self.video == 1:
                 print('video only')
                 Normal_Video()
@@ -383,7 +383,7 @@ class Cam_Btn_Set():                                                    # Cam �
 
     def finder_open(self):                              # 객체 추적 로그 화면 오픈
         if self.finder_status == 1:
-            self.finder = Tracking_Finder()
+            self.finder = Tracking_Finder(self.camera)
             self.finder_status = 0
         else:
             self.finder.close()
@@ -443,7 +443,8 @@ class Cam_init(object):                                                 # Cam �
         cam_init_pub.publish(my_msg)
 
 class Video_Btn_Set():                                                  # Video 조작 화면 버튼
-    def video_btn_set(self):                            # Video 조작 버튼 셋팅
+    def video_btn_set(self, camera):                            # Video 조작 버튼 셋팅
+        self.camera = camera
         self.button_video_speed_down = QtWidgets.QPushButton('', self)
         self.button_video_speed_down.resize(32, 32)
         self.button_video_speed_down.move(5, 5)
@@ -486,11 +487,11 @@ class Video_Btn_Set():                                                  # Video 
         self.button_Exit.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/exit.png'); border: none;")
         self.button_Exit.clicked.connect(self.exit_cam)
 
-        global cam_window_x
-        global cam_window_y
-        self.cam_window = self.pos()
-        cam_window_x = self.cam_window.x()
-        cam_window_y = self.cam_window.y()
+        global Video_window_x
+        global Video_window_y
+        self.Video_window = self.pos()
+        Video_window_x = self.Video_window.x()
+        Video_window_y = self.Video_window.y()
 
         self.finder = 0
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')       # 인코딩 방식 설정 FourCC(Four Character Code)
@@ -532,7 +533,7 @@ class Video_Btn_Set():                                                  # Video 
 
     def finder_open(self):                              # 객체 추적 로그 화면 오픈
         if self.finder_status == 1:
-            self.finder = Tracking_Finder()
+            self.finder = Tracking_Finder(self.camera)
             self.finder_status = 0
         else:
             self.finder_status = 1
@@ -557,34 +558,33 @@ class Video_Btn_Set():                                                  # Video 
             self.rec_btn_status = 0
 
     def exit_cam(self):
-        global people_select
         if self.record == True and self.finder_status == 0:
             print('Recording Stop!')
             self.record = False
             self.video.release()
             self.cap.release()
             self.finder.close()
-            people_select = 0
+            #self.people_select = 0
             self.close()
         elif self.record == True:
             print('Recording Stop!')
             self.record = False
             self.video.release()
             self.cap.release()
-            people_select = 0
+            #self.people_select = 0
             self.close()
         elif self.finder_status == 0:
             self.cap.release()
             self.finder.close()
-            people_select = 0
+            #self.people_select = 0
             self.close()
         else:
             self.cap.release()
-            people_select = 0
+            #self.people_select = 0
             self.close()
 
 class Tracking_Finder(QtWidgets.QDialog, Background_Set):               # 객체 인식시 로그 확인 화면
-    def __init__(self):
+    def __init__(self, camera):
         super(Tracking_Finder, self).__init__()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.background_set()
@@ -592,12 +592,11 @@ class Tracking_Finder(QtWidgets.QDialog, Background_Set):               # 객체
         width = 175
         height = 205
         self.setFixedSize(width, height)
-        self.setGeometry(cam_window_x + 650, cam_window_y + 180, width, height)
-        
-        #self.tb = QtWidgets.QTextBrowser()
+        if not camera == 0:
+            self.setGeometry(cam_window_x + 650, cam_window_y + 180, width, height)
+        else:
+            self.setGeometry(Video_window_x + 650, Video_window_y + 180, width, height)
         self.tb = QtWidgets.QTextEdit()
-        # self.tb.setAcceptRichText(True)
-        # self.tb.setOpenExternalLinks(True)
 
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.tb, 0)
@@ -716,9 +715,11 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only V
         print('Video_sys_init...')
 
 class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train & Video 조작 화면
-    def __init__(self):                                 # Train & Video 화면 셋팅
+    def __init__(self, camera, people):                                 # Train & Video 화면 셋팅
         super(Tracking_Video, self).__init__()
         self.background_set()
+
+        self.people_select = people
 
         width = 640
         height = 480
@@ -726,7 +727,6 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
         self.setGeometry(Position.x()-width-10, Position.y(), width, height)
 
         self.video_speed = 0.02                         # 배속조절 1프레임당 0.01초  0.02 = 0.5배속
-        self.waitkey = 1
         self.pause = False
 
         self.label = QtWidgets.QLabel(self)
@@ -741,7 +741,7 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
         self.Video_Slider.resize(363, 10)
         self.Video_Slider.move(114, 17)
         
-        self.video_btn_set()
+        self.video_btn_set(camera)
         self.show()
         self.video_convert()
 
@@ -755,11 +755,13 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
         self.Video_Slider.setEnabled(True)
 
         faceCascade = cv2.CascadeClassifier(path1[0])
+        
         self.face_count = 0
         self.stop_start_status = 0
+        self.get_target = 0
+        self.miss_count = 1
+        self.catch_count = 0
 
-        missing_count = 0
-        
         while True:
             self.ret, self.frame = self.cap.read()
             # scaleFactor = 작은 크기의 윈도우를 이용하여 객체를 검출하고 이후  scaleFactor값의 비율로 검색 윈도우를
@@ -800,34 +802,51 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
 
             if faces == ():
                 self.face_count = 0
+                self.catch_count = 0
+                if self.miss_count == 0:
+                    self.get_target = 1
+                    self.miss_count = 1
             
-            get_target = 0
+            #get_target = 0
             
             for (x,y,w,h) in faces:
                 self.face_count += 1
                 if self.face_count == 50 and not self.finder == 0 and self.stop_start_status == 0:
                     get_second = play_time/1000
                     getmsg = 'Catch_time\n' + '{}:{}:{}'.format(hours, minutes, seconds)
-                    getmsg1 = 'Elapsed_time\n' + str(now - datetime.datetime.fromtimestamp(os.path.getctime(path[0]) - (self.run_time) + get_second))
+                    #getmsg1 = 'Elapsed_time\n' + str(now - datetime.datetime.fromtimestamp(os.path.getctime(path[0]) - (self.run_time) + get_second))
                     self.finder.append_text(getmsg)
-                    self.finder.append_text(getmsg1)
-                    self.face_count = 0
-                    missing_count = 0
-                    get_target = 1
+                    #self.finder.append_text(getmsg1)
+                    self.missing_count = 0
+                    #get_target = 1
+
+                if self.face_count > 50:
+                    self.catch_count += 1
+                    if self.catch_count == 50:
+                        getmsg = 'Catching...'
+                        self.finder.append_text(getmsg)
+                        self.catch_count = 0
+                        self.miss_count = 0
+                        self.now1 = datetime.datetime.now() 
                 cv2.rectangle(self.frame,(x,y),(x+w,y+h),(0,255,0),1)
                 
             ################################################################ server 전송 부 ################################################################
-            if get_target == 1 or not missing_count == 0:
-                if not people_select == 0:     
-                    missing_count += 1
-                    print(missing_count)
-                    print('Elapsed time : ' + str(now - datetime.datetime.fromtimestamp(os.path.getctime(path[0]) - (self.run_time) + get_second)))
-                    print('People_Num : ' + '%d' % people_select)
-                    # print('Cam_Num : ' + '%s' % self.cam_num)
-                else:
-                    # print('Tracking to Video')
-                    print('Missing_Time : ' + '{}:{}:{}'.format(hours, minutes, seconds))
-                    print('Elapsed time : ' + str(now - datetime.datetime.fromtimestamp(os.path.getctime(path[0]) - (self.run_time) + get_second)))
+            if self.get_target == 1:
+                self.missing_count += 1
+                if not self.people_select == 0:     
+                    if self.missing_count%50 == 0:
+                        getmsg = 'People_Num : ' + '%d' % self.people_select
+                        self.finder.append_text(getmsg)
+                        getmsg ='Missing_Time : ' + '{}:{}:{}'.format(hours, minutes, seconds)
+                        self.finder.append_text(getmsg)
+                        getmsg = 'Elapsed time\n' + str(now - datetime.datetime.fromtimestamp(os.path.getctime(path[0]) - (self.run_time) + get_second))
+                        self.finder.append_text(getmsg)
+                elif self.people_select == 0: 
+                    if self.missing_count%50 == 0:
+                        getmsg ='Missing_Time : ' + '{}:{}:{}'.format(hours, minutes, seconds)
+                        self.finder.append_text(getmsg)
+                        getmsg = 'Elapsed time\n' + str(now - datetime.datetime.fromtimestamp(os.path.getctime(path[0]) - (self.run_time) + get_second))
+                        self.finder.append_text(getmsg)
             ################################################################ server 전송 부 ################################################################
 
             self.label.resize(640, 480)
@@ -851,24 +870,36 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
     
     def slider_change(self, v):
         self.cap.set(1, v);
-        
+
+    def moveEvent(self, event):                         # 화면 이동시 관련 창 동시 이동
+        super(Tracking_Video, self).moveEvent(event)
+        self.Video_window = self.pos()
+        global Video_window_x
+        global Video_window_y
+        Video_window_x = self.Video_window.x()
+        Video_window_y = self.Video_window.y()
+        if not self.finder == 0:
+            geo1 = self.geometry()
+            geo1.moveTo(Video_window_x + 650, Video_window_y + 200)
+            self.finder.setGeometry(geo1)
+
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
-            global people_select
+           
             if self.record == True and self.finder_status == 0:
                 print('Recording Stop!')
                 self.record = False
                 self.video.release()
                 self.cap.release()
                 self.finder.close()
-                people_select = 0
+                #people_select = 0
                 self.close()
             elif self.record == True:
                 print('Recording Stop!')
                 self.record = False
                 self.video.release()
                 self.cap.release()
-                people_select = 0
+                #people_select = 0
                 self.close()
             elif self.finder_status == 0:
                 self.cap.release()
@@ -877,20 +908,8 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
                 self.close()
             else:
                 self.cap.release()
-                people_select = 0
+                #people_select = 0
                 self.close()
-    
-    def moveEvent(self, event):                         # 화면 이동시 관련 창 동시 이동
-        super(Tracking_Video, self).moveEvent(event)
-        self.cam_window = self.pos()
-        global cam_window_x
-        global cam_window_y
-        cam_window_x = self.cam_window.x()
-        cam_window_y = self.cam_window.y()
-        if not self.finder == 0:
-            geo1 = self.geometry()
-            geo1.moveTo(cam_window_x + 650, cam_window_y + 200)
-            self.finder.setGeometry(geo1)
     
     def __del__(self):
         print('Video_sys_init...')
@@ -976,11 +995,18 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):    # Only C
         print('Camera_sys_init...')
 
 class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train & Video 조작 화면
-    def __init__(self, camera):                         # Train & Video 화면 셋팅 및 Cam데이터 Subs
+    def __init__(self, camera, people):                         # Train & Video 화면 셋팅 및 Cam데이터 Subs
         super(Tracking_Camera, self).__init__()
         self.background_set()
         
+        # self.db = pymysql.Connect(host='3.34.190.68', user='mstpjt', password='1111', port = 52481, database='mstDB')
+        # self.cursor = self.db.cursor()
+
+
+        # self.query = "INSERT INTO mstDB (CAMERA_NUM, SORTATION, TIME) VALUES (%s,%s,%s)"
+
         self.camera = camera
+        self.people_select = people
         rospy.init_node('cam_sub%s' % camera, anonymous = False)
         self._sub = rospy.Subscriber('/cam_num%s' % camera, Image, self.callback, queue_size=1)
 
@@ -1005,10 +1031,8 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
 
         self.tracking_on_off = 1
         
-        self.txt_num = 0
         self.get_target = 0
         self.face_count = 0
-        self.init_count = 0
         self.missing_count = 0
         self.miss_count = 1
         self.catch_count = 0
@@ -1019,17 +1043,31 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         midScreenWindow = 17  # 객체를 인식한 사각형이 중앙에서 벗어날 수 있는 여유 값
 
         self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-        self.cv_image = np.uint8(self.cv_image)
-        faceCascade = cv2.CascadeClassifier(path1[0])
-        faces = faceCascade.detectMultiScale(self.cv_image, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
+        self.cv_image = np.uint8(self.cv_image)                 ########################## 비디오 입력 방법 확인 해서 인자 'self.cv_image'   ex) cam = video 0 -> self.cv_image  한태민
+        faceCascade = cv2.CascadeClassifier(path1[0])       ################################################    학습파일 경로   한태민
+        faces = faceCascade.detectMultiScale(self.cv_image, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))      ################################################학습파일 한태민
         
+
+
+
+
+
+        #yolo src
+
+
+
+
+
+
+
+
+
         if faces == ():
             self.face_count = 0    
             self.catch_count = 0
             if self.miss_count == 0:
                 self.get_target = 1
                 self.miss_count = 1
-                self.miss_msg = 0
 
         for (x,y,w,h) in faces:
             self.face_count += 1
@@ -1038,17 +1076,16 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
                 now = datetime.datetime.now().strftime("%m-%d-%H:%M:%S")
                 getmsg = 'Catch_time\n' + now
                 self.finder.append_text(getmsg)
-                self.face_count = 50
                 self.missing_count = 0
 
             if self.face_count > 50:
                 self.catch_count += 1
-                self.txt_num += 1
                 if self.catch_count == 50:
                     getmsg = 'Catching...'
                     self.finder.append_text(getmsg)
                     self.catch_count = 0
                     self.miss_count = 0
+                    self.now1 = datetime.datetime.now()
             cv2.rectangle(self.cv_image,(x,y),(x+w,y+h),(0,255,0),1)
 
             if self.tracking_on_off == 1:
@@ -1092,29 +1129,26 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         ################################################################ server 전송 부 ################################################################
         if self.get_target == 1:
             self.missing_count += 1
-            self.txt_num += 1
-            if not people_select == 0:     
+            now2 = datetime.datetime.now()
+            if not self.people_select == 0:     
                 if self.missing_count%50 == 0:
-                    if self.miss_msg == 0:
-                        self.now1 = datetime.datetime.now()
-                        getmsg = 'Missed!!!\n' + str(self.now1)
+                        getmsg = 'Cam_num : ' + '%s' % self.camera
                         self.finder.append_text(getmsg)
-                        self.miss_msg = 1
-                    elif not self.miss_msg == 0:
-                        now2 = datetime.datetime.now()
-                        getmsg = 'Missing...\n' + str(now2 - self.now1)
+                        getmsg = 'People_num : ' + '%d' % self.people_select
                         self.finder.append_text(getmsg)
-                #print('Cam_Num : ' + '%s' % self.camera)
-                #print('People_Num : ' + '%d' % people_select)
-                #print('Elapsed time : ' + str(now1-))
-            else:
-                print(self.missing_count)
-                print('Cam_Num : ' + '%s' % self.camera)
-                #print('Elapsed time : ' + str(now))
+                        getmsg = 'Missing_time\n' + str(now2 - self.now1)
+                        self.finder.append_text(getmsg)
+
+                        # self.data = (self.camera,self.people_select, str(now2 - self.now1))
+                        # self.cursor.execute(self.query, self.data)
+                        # self.db.commit()
+            elif self.people_select == 0: 
+                if self.missing_count%50 == 0:
+                    getmsg = 'Cam_Num : ' + '%s' % self.camera
+                    self.finder.append_text(getmsg)
+                    getmsg = 'Missing...\n' + str(now2 - self.now1)
+                    self.finder.append_text(getmsg)
         ################################################################ server 전송 부 ################################################################        
-        # if self.txt_num > 10:
-            # self.finder.tb.clear()
-            # self.txt_num = 0
 
         manual_servo_x = self.servo_x
         manual_servo_y = self.servo_y
