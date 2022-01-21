@@ -18,8 +18,7 @@ import random
 import darknet
 import argparse
 from threading import Thread, enumerate
-from queue import Queue
-
+import Queue
 
 class Background_Set():                                                 # 배경화면 셋팅
     def background_set(self):
@@ -43,7 +42,7 @@ class LoginForm(QtWidgets.QDialog, Background_Set):                     # 로그
         logo_label = QtWidgets.QLabel(self)
         logo_label.resize(100, 100)
         logo_label.move(160, 5)
-        pixmap = QtGui.QPixmap('/home/jin/mst/jin/The_latest_package/Data/Image/Logo.png')
+        pixmap = QtGui.QPixmap('/home/han/mst/jin/On_the_job/darknet/Data/Image/Logo.png')
         logo_label.setPixmap(pixmap)
 
         self.label_name = QtWidgets.QLabel('<font size="2"> ID </font>', self)
@@ -158,31 +157,31 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
         self.show()                                 # MainWindow 창 띄움
 
     def setToolBar(self):                               # 툴바 셋팅
-        exitAction = QtWidgets.QAction(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Toolbar/exit.png'), 'Exit', self)   # 툴바 아이콘 이미지 삽입
+        exitAction = QtWidgets.QAction(QtGui.QIcon('/home/han/mst/jin/On_the_job/darknet/Data/Image/Toolbar/exit.png'), 'Exit', self)   # 툴바 아이콘 이미지 삽입
         exitAction.setShortcut('Ctrl+Q')            # 툴바 단축키 설정
         exitAction.setStatusTip('Exit')             # 상태창 메세지
         exitAction.setToolTip('Ctrl+Q')             # 툴팁 메세지
         exitAction.triggered.connect(self.exit_btn) # 툴바 클릭시 발생 이벤트
 
-        logoutAction = QtWidgets.QAction(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Toolbar/logout.png'), 'Logout', self)
+        logoutAction = QtWidgets.QAction(QtGui.QIcon('/home/han/mst/jin/On_the_job/darknet/Data/Image/Toolbar/logout.png'), 'Logout', self)
         logoutAction.setShortcut('Ctrl+L')
         logoutAction.setStatusTip('Logout')
         logoutAction.setToolTip('Ctrl+L')
         logoutAction.triggered.connect(self.Logout)
 
-        trainAction = QtWidgets.QAction(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Toolbar/train_open.png'), 'Train', self)
+        trainAction = QtWidgets.QAction(QtGui.QIcon('/home/han/mst/jin/On_the_job/darknet/Data/Image/Toolbar/train_open.png'), 'Train', self)
         trainAction.setShortcut('Ctrl+T')
         trainAction.setStatusTip('Train File Open')
         trainAction.setToolTip('Ctrl+T')
         trainAction.triggered.connect(self.Insert_Train)
         
-        videoAction = QtWidgets.QAction(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Toolbar/video_open.png'), 'Video', self)
+        videoAction = QtWidgets.QAction(QtGui.QIcon('/home/han/mst/jin/On_the_job/darknet/Data/Image/Toolbar/video_open.png'), 'Video', self)
         videoAction.setShortcut('Ctrl+O')
         videoAction.setStatusTip('Video File Open')
         videoAction.setToolTip('Ctrl+O')
         videoAction.triggered.connect(self.Insert_Video)        
         
-        stratAction = QtWidgets.QAction(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Toolbar/play.png'), 'Start', self)
+        stratAction = QtWidgets.QAction(QtGui.QIcon('/home/han/mst/jin/On_the_job/darknet/Data/Image/Toolbar/play.png'), 'Start', self)
         stratAction.setShortcut('Ctrl+S')
         stratAction.setStatusTip('Start Application')
         stratAction.setToolTip('Ctrl+S')
@@ -220,7 +219,8 @@ class MainWindow(QtWidgets.QMainWindow, Background_Set):                # 기능
         global path1
 
         self.filePath.clear()
-        path1 = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', '', 'mp4 File(*.xml)') #################################### 파일 확장자 변경 한태민
+        path1 = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', '', 'All File(*.*)') #################################### 파일 확장자 변경 한태민
+        #path1 = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', '', 'mp4 File(*.xml)')
         self.filePath.setText(path1[0])
         
         if path1[0] == '':
@@ -318,31 +318,31 @@ class Cam_Btn_Set():                                                    # Cam �
         self.button_Auto = QtWidgets.QPushButton('', self)
         self.button_Auto.resize(32, 32)
         self.button_Auto.move(440, 5)
-        self.button_Auto.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/joypad.png'); border: none;")
+        self.button_Auto.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/joypad.png'); border: none;")
         self.button_Auto.clicked.connect(self.controller_open)
 
         self.button_Finder = QtWidgets.QPushButton('', self)
         self.button_Finder.resize(32, 32)
         self.button_Finder.move(477, 5)
-        self.button_Finder.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/finder.png'); border: none;")
+        self.button_Finder.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/finder.png'); border: none;")
         self.button_Finder.clicked.connect(self.finder_open)
 
         self.button_Cap = QtWidgets.QPushButton('', self)
         self.button_Cap.resize(32, 32)
         self.button_Cap.move(519, 5)
-        self.button_Cap.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/capture.png'); border: none;")
+        self.button_Cap.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/capture.png'); border: none;")
         self.button_Cap.clicked.connect(self.camera_cap)
 
         self.button_REC = QtWidgets.QPushButton('', self)
         self.button_REC.resize(32, 32)
         self.button_REC.move(561, 5)
-        self.button_REC.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/REC.png'); border: none;")
+        self.button_REC.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/REC.png'); border: none;")
         self.button_REC.clicked.connect(self.rec)     
 
         self.button_Exit = QtWidgets.QPushButton('', self)
         self.button_Exit.resize(32, 32)
         self.button_Exit.move(603, 5)
-        self.button_Exit.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/exit.png'); border: none;")
+        self.button_Exit.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/exit.png'); border: none;")
         self.button_Exit.clicked.connect(self.exit_cam)
 
         global cam_window_x
@@ -366,13 +366,13 @@ class Cam_Btn_Set():                                                    # Cam �
 
     def rec(self):                                      # Video 녹화 시작/중지
         if self.start_btn_status == 0:
-            self.button_REC.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/STOP.png'); border: none;")
+            self.button_REC.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/STOP.png'); border: none;")
             print('Recording Start!')
             self.record = True
             self.video = cv2.VideoWriter("/home/jin/mst/jin/The_latest_package/Storage_camera/" + str(self.now) + ".avi", self.fourcc, 30.0, (self.cv_image.shape[1], self.cv_image.shape[0]))        
             self.start_btn_status = 1
         else:
-            self.button_REC.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/REC.png'); border: none;")
+            self.button_REC.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/REC.png'); border: none;")
             print('Record file save : '+ '/home/jin/mst/jin/The_latest_package/Storage_camera/')
             self.record = False
             self.video.release()
@@ -455,43 +455,43 @@ class Video_Btn_Set():                                                  # Video 
         self.button_video_speed_down = QtWidgets.QPushButton('', self)
         self.button_video_speed_down.resize(32, 32)
         self.button_video_speed_down.move(5, 5)
-        self.button_video_speed_down.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/minor10.png'); border: none;")
+        self.button_video_speed_down.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/minor10.png'); border: none;")
         self.button_video_speed_down.clicked.connect(self.video_speed_down)
         
         self.button_video_speed_up = QtWidgets.QPushButton('', self)
         self.button_video_speed_up.resize(32, 32)
         self.button_video_speed_up.move(42, 5)
-        self.button_video_speed_up.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/plus10.png'); border: none;")
+        self.button_video_speed_up.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/plus10.png'); border: none;")
         self.button_video_speed_up.clicked.connect(self.video_speed_up)
         
         self.button_Video_Start = QtWidgets.QPushButton('', self)
         self.button_Video_Start.resize(32, 32)
         self.button_Video_Start.move(79, 5)
-        self.button_Video_Start.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/pause_b.png'); border: none;")
+        self.button_Video_Start.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/pause_b.png'); border: none;")
         self.button_Video_Start.clicked.connect(self.video_start_stop)
 
         self.button_Finder = QtWidgets.QPushButton('', self)
         self.button_Finder.resize(32, 32)
         self.button_Finder.move(482, 5)
-        self.button_Finder.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/finder.png'); border: none;")
+        self.button_Finder.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/finder.png'); border: none;")
         self.button_Finder.clicked.connect(self.finder_open)
 
         self.button_Cap = QtWidgets.QPushButton('', self)
         self.button_Cap.resize(32, 32)
         self.button_Cap.move(519, 5)
-        self.button_Cap.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/capture.png'); border: none;")
+        self.button_Cap.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/capture.png'); border: none;")
         self.button_Cap.clicked.connect(self.video_cap)
 
         self.button_REC = QtWidgets.QPushButton('', self)
         self.button_REC.resize(32, 32)
         self.button_REC.move(561, 5)
-        self.button_REC.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/REC.png'); border: none;")
+        self.button_REC.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/REC.png'); border: none;")
         self.button_REC.clicked.connect(self.rec)     
 
         self.button_Exit = QtWidgets.QPushButton('', self)
         self.button_Exit.resize(32, 32)
         self.button_Exit.move(603, 5)
-        self.button_Exit.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/exit.png'); border: none;")
+        self.button_Exit.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/exit.png'); border: none;")
         self.button_Exit.clicked.connect(self.exit_cam)
 
         global Video_window_x
@@ -526,13 +526,13 @@ class Video_Btn_Set():                                                  # Video 
 
     def video_start_stop(self):                         # Video 녹화 시작
         if self.start_btn_status == 0:
-            self.button_Video_Start.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/play.png'); border: none;")
+            self.button_Video_Start.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/play.png'); border: none;")
             self.pause= True
             self.stop_start_status = 1
             print('Video Stop!')
             self.start_btn_status = 1
         else:
-            self.button_Video_Start.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/pause_b.png'); border: none;")
+            self.button_Video_Start.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/pause_b.png'); border: none;")
             self.pause= False
             self.stop_start_status = 0
             print('Video Start!')
@@ -552,13 +552,13 @@ class Video_Btn_Set():                                                  # Video 
 
     def rec(self):                                      # Video 녹화 시작/중지
         if self.rec_btn_status == 0:
-            self.button_REC.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/STOP.png'); border: none;")
+            self.button_REC.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/STOP.png'); border: none;")
             print('Recording Start!')
             self.record = True
             self.video = cv2.VideoWriter("/home/jin/mst/jin/The_latest_package/Storage_video/" + str(self.now) + ".avi", self.fourcc, 30.0, (self.frame.shape[1], self.frame.shape[0]))        
             self.rec_btn_status = 1
         else:
-            self.button_REC.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/REC.png'); border: none;")
+            self.button_REC.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/REC.png'); border: none;")
             print('Record file save : '+ '/home/jin/mst/jin/The_latest_package/Storage_video/')
             self.record = False
             self.video.release()
@@ -641,7 +641,7 @@ class Normal_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set):   # Only V
 
         self.video_btn_set()
         self.button_Finder.setEnabled(False)
-        self.button_Finder.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/finder_none.png'); border: none;")
+        self.button_Finder.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/finder_none.png'); border: none;")
         self.show()
         self.video_convert()
 
@@ -944,7 +944,7 @@ class Normal_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):    # Only C
 
         self.cam_btn_set(camera)
         self.button_Finder.setEnabled(False)
-        self.button_Finder.setStyleSheet("background-image: url('/home/jin/mst/jin/The_latest_package/Data/Image/controller_btn/finder_none.png'); border: none;")
+        self.button_Finder.setStyleSheet("background-image: url('/home/han/mst/jin/On_the_job/darknet/Data/Image/controller_btn/finder_none.png'); border: none;")
         self.show()    
 
     def callback(self, data):                           # Cam 데이터 Qt 데이터로 변환
@@ -1043,7 +1043,100 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         self.missing_count = 0
         self.miss_count = 1
         self.catch_count = 0
-    
+        ###############################################################################
+        self.frame_queue = Queue.Queue()
+        self.darknet_image_queue = Queue.Queue(maxsize=1)
+        self.detections_queue = Queue.Queue(maxsize=1)
+        self.fps_queue = Queue.Queue(maxsize=1)
+
+        self.args = self.parser()
+        self.check_arguments_errors(self.args)
+        self.network, self.class_names, self.class_colors = darknet.load_network(
+                self.args.config_file,
+                self.args.data_file,
+                self.args.weights,
+                batch_size=1
+            )
+        self.darknet_width = darknet.network_width(self.network)
+        self.darknet_height = darknet.network_height(self.network)
+
+        # Thread(target=self.video_capture, args=(self.frame_queue, self.darknet_image_queue)).start()
+        # Thread(target=self.inference, args=(self.darknet_image_queue, self.detections_queue, self.fps_queue)).start()
+        # Thread(target=self.drawing, args=(self.frame_queue, self.detections_queue, self.fps_queue)).start()
+
+
+    def parser(self):
+        parser = argparse.ArgumentParser(description="YOLO Object Detection")
+        parser.add_argument("--input", type=str, default=0,
+                            help="video source. If empty, uses webcam 0 stream")
+        parser.add_argument("--out_filename", type=str, default="123",
+                            help="inference video name. Not saved if empty")
+        parser.add_argument("--weights", default=path1[0],
+                            help="yolo weights path")
+        parser.add_argument("--dont_show", action='store_true',
+                            help="windown inference display. For headless systems")
+        parser.add_argument("--ext_output", action='store_true',
+                            help="display bbox coordinates of detected objects")
+        parser.add_argument("--config_file", default="/home/han/darknet/cfg/yolov4-obj.cfg",
+                            help="path to config file")
+        parser.add_argument("--data_file", default="/home/han/darknet/data/obj.data",
+                            help="path to data file")
+        parser.add_argument("--thresh", type=float, default=.25,
+                            help="remove detections with confidence below this value")
+        return parser.parse_args()
+
+    def check_arguments_errors(self, args):
+        assert 0 < args.thresh < 1, "Threshold should be a float between zero and one (non-inclusive)"
+        if not os.path.exists(args.config_file):
+            raise(ValueError("Invalid config path {}".format(os.path.abspath(args.config_file))))
+        if not os.path.exists(args.weights):
+            raise(ValueError("Invalid weight path {}".format(os.path.abspath(args.weights))))
+        if not os.path.exists(args.data_file):
+            raise(ValueError("Invalid data file path {}".format(os.path.abspath(args.data_file))))
+
+    def convert2relative(self, bbox):
+        """
+        YOLO format use relative coordinates for annotation
+        """
+        x, y, w, h  = bbox
+        _height     = self.darknet_height
+        _width      = self.darknet_width
+        return x/_width, y/_height, w/_width, h/_height
+
+    def convert2original(self, image, bbox):
+        x, y, w, h = self.convert2relative(bbox)
+
+        image_h, image_w, __ = image.shape
+
+        orig_x       = int(x * image_w)
+        orig_y       = int(y * image_h)
+        orig_width   = int(w * image_w)
+        orig_height  = int(h * image_h)
+
+        bbox_converted = (orig_x, orig_y, orig_width, orig_height)
+
+        return bbox_converted
+
+    def convert4cropping(self, image, bbox):
+        x, y, w, h = self.convert2relative(bbox)
+
+        image_h, image_w, __ = image.shape
+
+        orig_left    = int((x - w / 2.) * image_w)
+        orig_right   = int((x + w / 2.) * image_w)
+        orig_top     = int((y - h / 2.) * image_h)
+        orig_bottom  = int((y + h / 2.) * image_h)
+
+        if (orig_left < 0): orig_left = 0
+        if (orig_right > image_w - 1): orig_right = image_w - 1
+        if (orig_top < 0): orig_top = 0
+        if (orig_bottom > image_h - 1): orig_bottom = image_h - 1
+
+        bbox_cropping = (orig_left, orig_top, orig_right, orig_bottom)
+
+        return bbox_cropping
+
+        #####################################################################################
     def callback(self, data):                           # Cam 데이터 Qt 데이터로 변환 및 객체 인식에 따른 모터 구동 Pub
         midScreenX = 320/2    # 화면 x축 중앙
         midScreenY = 240/2    # 화면 y축 중앙
@@ -1051,123 +1144,140 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
 
         self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         self.cv_image = np.uint8(self.cv_image)                 ########################## 비디오 입력 방법 확인 해서 인자 'self.cv_image'   ex) cam = video 0 -> self.cv_image  한태민
-        faceCascade = cv2.CascadeClassifier(path1[0])       ################################################    학습파일 경로   한태민
-        faces = faceCascade.detectMultiScale(self.cv_image, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))      ################################################학습파일 한태민
-        
 
+#########################
+        frame_rgb = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB)
+        frame_resized = cv2.resize(frame_rgb, (self.darknet_width, self.darknet_height),
+                                   interpolation=cv2.INTER_LINEAR)
+        self.frame_queue.put(self.cv_image)
+        img_for_detect = darknet.make_image(self.darknet_width, self.darknet_height, 3)
+        darknet.copy_image_from_bytes(img_for_detect, frame_resized.tobytes())
+        self.darknet_image_queue.put(img_for_detect)
 
+#######################
+        darknet_image = self.darknet_image_queue.get()
+        prev_time = time.time()
+        detections = darknet.detect_image(self.network, self.class_names, darknet_image, thresh=self.args.thresh)
+        self.detections_queue.put(detections)
+        fps = int(1/(time.time() - prev_time))
+        self.fps_queue.put(fps)
+        darknet.print_detections(detections, self.args.ext_output)
+        darknet.free_image(darknet_image)
 
+#########################
+        random.seed(3)  # deterministic bbox colors
 
+        frame = self.frame_queue.get()
+        detections = self.detections_queue.get()
+        fps = self.fps_queue.get()
+        detections_adjusted = []
+        if frame is not None:
+            for label, confidence, bbox in detections:
+                bbox_adjusted = self.convert2original(frame, bbox)
+                detections_adjusted.append((str(label), confidence, bbox_adjusted))
+            image = darknet.draw_boxes(detections_adjusted, frame, self.class_colors)
+            if not self.args.dont_show:
+                cv2.imshow('Inference', image)
 
-        #yolo src
-
-
-
-
-
-
-
-
-
-        if faces == ():
-            self.face_count = 0    
-            self.catch_count = 0
-            if self.miss_count == 0:
-                self.get_target = 1
-                self.miss_count = 1
-
-        for (x,y,w,h) in faces:
-            self.face_count += 1
-            if self.face_count == 50 and not self.finder == 0:
-                self.get_target = 0
-                now = datetime.datetime.now().strftime("%m-%d-%H:%M:%S")
-                getmsg = 'Catch_time\n' + now
-                self.finder.append_text(getmsg)
-                self.missing_count = 0
-
-            if self.face_count > 50:
-                self.catch_count += 1
-                if self.catch_count == 50:
-                    getmsg = 'Catching...'
-                    self.finder.append_text(getmsg)
-                    self.catch_count = 0
-                    self.miss_count = 0
-                    self.now1 = datetime.datetime.now()
-            cv2.rectangle(self.cv_image,(x,y),(x+w,y+h),(0,255,0),1)
-
-            if self.tracking_on_off == 1:
-                self.servo_x1 = int(x+w/2)
-                self.servo_y1 = int(y+h/2)
-
-                if self.servo_x1 < midScreenX-midScreenWindow:
-                    self.servo_x += 1
-                elif self.servo_x1 > midScreenX+midScreenWindow:
-                    self.servo_x -= 1
-                if self.servo_y1 > midScreenY+midScreenWindow:
-                    self.servo_y += 1
-                elif self.servo_y1 < midScreenY-midScreenWindow:
-                    self.servo_y -= 1
-
-                if self.servo_x > 500:
-                    print('Max_X_value!!!')
-                    self.servo_x = 500
-                elif self.servo_y < 170:
-                    print('Min_X_value!!!')
-                    self.servo_x = 170
-                if self.servo_y > 450 :
-                    print('Max_Y_value!!!')
-                    self.servo_y = 450
-                elif self.servo_y < 310:
-                    print('Min_Y_value!!!')
-                    self.servo_y = 310
-
-                self.cam_tracking_pub = rospy.Publisher('cam_tracking%d' % self.camera, UInt16MultiArray, queue_size=1)
-                self.my_msg = UInt16MultiArray()
-                self.my_msg.data = [self.servo_x, self.servo_y]
-                self.cam_tracking_pub.publish(self.my_msg)
-
-                global manual_servo_x
-                global manual_servo_y
-                manual_servo_x = self.servo_x
-                manual_servo_y = self.servo_y
-            else :
-                pass
-
-        ################################################################ server 전송 부 ################################################################
-        if self.get_target == 1:
-            self.missing_count += 1
-            now2 = datetime.datetime.now()
-            if not self.people_select == 0:     
-                if self.missing_count%50 == 0:
-                        getmsg = 'Cam_num : ' + '%s' % self.camera
-                        self.finder.append_text(getmsg)
-                        getmsg = 'People_num : ' + '%d' % self.people_select
-                        self.finder.append_text(getmsg)
-                        getmsg = 'Missing_time\n' + str(now2 - self.now1)
-                        self.finder.append_text(getmsg)
-
+        # if faces == ():
+            # self.face_count = 0    
+            # self.catch_count = 0
+            # if self.miss_count == 0:
+                # self.get_target = 1
+                # self.miss_count = 1
+# 
+        # for (x,y,w,h) in faces:
+            # self.face_count += 1
+            # if self.face_count == 50 and not self.finder == 0:
+                # self.get_target = 0
+                # now = datetime.datetime.now().strftime("%m-%d-%H:%M:%S")
+                # getmsg = 'Catch_time\n' + now
+                # self.finder.append_text(getmsg)
+                # self.missing_count = 0
+# 
+            # if self.face_count > 50:
+                # self.catch_count += 1
+                # if self.catch_count == 50:
+                    # getmsg = 'Catching...'
+                    # self.finder.append_text(getmsg)
+                    # self.catch_count = 0
+                    # self.miss_count = 0
+                    # self.now1 = datetime.datetime.now()
+            # cv2.rectangle(self.cv_image,(x,y),(x+w,y+h),(0,255,0),1)
+# 
+            # if self.tracking_on_off == 1:
+                # self.servo_x1 = int(x+w/2)
+                # self.servo_y1 = int(y+h/2)
+# 
+                # if self.servo_x1 < midScreenX-midScreenWindow:
+                    # self.servo_x += 1
+                # elif self.servo_x1 > midScreenX+midScreenWindow:
+                    # self.servo_x -= 1
+                # if self.servo_y1 > midScreenY+midScreenWindow:
+                    # self.servo_y += 1
+                # elif self.servo_y1 < midScreenY-midScreenWindow:
+                    # self.servo_y -= 1
+# 
+                # if self.servo_x > 500:
+                    # print('Max_X_value!!!')
+                    # self.servo_x = 500
+                # elif self.servo_y < 170:
+                    # print('Min_X_value!!!')
+                    # self.servo_x = 170
+                # if self.servo_y > 450 :
+                    # print('Max_Y_value!!!')
+                    # self.servo_y = 450
+                # elif self.servo_y < 310:
+                    # print('Min_Y_value!!!')
+                    # self.servo_y = 310
+# 
+                # self.cam_tracking_pub = rospy.Publisher('cam_tracking%d' % self.camera, UInt16MultiArray, queue_size=1)
+                # self.my_msg = UInt16MultiArray()
+                # self.my_msg.data = [self.servo_x, self.servo_y]
+                # self.cam_tracking_pub.publish(self.my_msg)
+# 
+                # global manual_servo_x
+                # global manual_servo_y
+                # manual_servo_x = self.servo_x
+                # manual_servo_y = self.servo_y
+            # else :
+                # pass
+# 
+        ############################################################### server 전송 부 ################################################################
+        # if self.get_target == 1:
+            # self.missing_count += 1
+            # now2 = datetime.datetime.now()
+            # if not self.people_select == 0:     
+                # if self.missing_count%50 == 0:
+                        # getmsg = 'Cam_num : ' + '%s' % self.camera
+                        # self.finder.append_text(getmsg)
+                        # getmsg = 'People_num : ' + '%d' % self.people_select
+                        # self.finder.append_text(getmsg)
+                        # getmsg = 'Missing_time\n' + str(now2 - self.now1)
+                        # self.finder.append_text(getmsg)
+# 
                         # self.data = (self.camera,self.people_select, str(now2 - self.now1))
                         # self.cursor.execute(self.query, self.data)
                         # self.db.commit()
-            elif self.people_select == 0: 
-                if self.missing_count%50 == 0:
-                    getmsg = 'Cam_Num : ' + '%s' % self.camera
-                    self.finder.append_text(getmsg)
-                    getmsg = 'Missing...\n' + str(now2 - self.now1)
-                    self.finder.append_text(getmsg)
-        ################################################################ server 전송 부 ################################################################        
-
-        manual_servo_x = self.servo_x
-        manual_servo_y = self.servo_y
-
-        if self.tracking_on_off == 0:
-            self.manual_subs = rospy.Subscriber('/manual_control_%s' % self.camera,  UInt16MultiArray, self.callback_manual, queue_size=1)
-                    
-        if self.record == True:
-            self.video.write(self.cv_image)
-
+            # elif self.people_select == 0: 
+                # if self.missing_count%50 == 0:
+                    # getmsg = 'Cam_Num : ' + '%s' % self.camera
+                    # self.finder.append_text(getmsg)
+                    # getmsg = 'Missing...\n' + str(now2 - self.now1)
+                    # self.finder.append_text(getmsg)
+        ############################################################### server 전송 부 ################################################################        
+# 
+        # manual_servo_x = self.servo_x
+        # manual_servo_y = self.servo_y
+# 
+        # if self.tracking_on_off == 0:
+            # self.manual_subs = rospy.Subscriber('/manual_control_%s' % self.camera,  UInt16MultiArray, self.callback_manual, queue_size=1)
+                    # 
+        # if self.record == True:
+            # self.video.write(self.cv_image)
+# 
         self.label.resize(640, 480)
-        self.img = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB)
+        self.img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         self.img = cv2.flip(self.img, 1)
         h,w,c = self.img.shape
         qImg = QtGui.QImage(self.img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
@@ -1260,28 +1370,28 @@ class Camera_Control(QtWidgets.QDialog, Background_Set):                # Cam �
         self.setFixedSize(width, height)
         self.setGeometry(cam_window_x + 650, cam_window_y + 480 - height, width, height)
 
-        self.button_Up = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/up.png'),'', self)
+        self.button_Up = QtWidgets.QPushButton(QtGui.QIcon('/home/han/mst/jin/On_the_job/darknet/Data/Image/Controller/up.png'),'', self)
         self.button_Up.resize(40, 40)
         self.button_Up.move(45, 0)
         self.button_Up.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Up.setFocusPolicy(Qt.NoFocus)
         self.button_Up.clicked.connect(lambda:self.Manual(1))
 
-        self.button_Down = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/down.png'),'', self)
+        self.button_Down = QtWidgets.QPushButton(QtGui.QIcon('/home/han/mst/jin/On_the_job/darknet/Data/Image/Controller/down.png'),'', self)
         self.button_Down.resize(40, 40)
         self.button_Down.move(45, 45)
         self.button_Down.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Down.setFocusPolicy(Qt.NoFocus)
         self.button_Down.clicked.connect(lambda:self.Manual(2))
 
-        self.button_Right = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/right.png'),'', self)
+        self.button_Right = QtWidgets.QPushButton(QtGui.QIcon('/home/han/mst/jin/On_the_job/darknet/Data/Image/Controller/right.png'),'', self)
         self.button_Right.resize(40, 40)
         self.button_Right.move(90, 45)
         self.button_Right.setStyleSheet('QPushButton {background-color: #000000; color: white;}')
         self.button_Right.setFocusPolicy(Qt.NoFocus)
         self.button_Right.clicked.connect(lambda:self.Manual(3))
 
-        self.button_Left = QtWidgets.QPushButton(QtGui.QIcon('/home/jin/mst/jin/The_latest_package/Data/Image/Controller/left.png'),'', self)
+        self.button_Left = QtWidgets.QPushButton(QtGui.QIcon('/home/han/mst/jin/On_the_job/darknet/Data/Image/Controller/left.png'),'', self)
         self.button_Left.resize(40, 40)
         self.button_Left.move(0, 45)
         self.button_Left.setStyleSheet('QPushButton {background-color: #000000; color: white;}')

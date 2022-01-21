@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import rospy
 import cv2
 
@@ -10,7 +9,7 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
 cap.set(cv2.CAP_PROP_FPS, 20)
 
-rospy.init_node("webcam_pub", anonymous=True)
+rospy.init_node("cam_pub", anonymous=True)
 image_pub = rospy.Publisher("cam_num1", Image, queue_size=1)
 
 bridge = CvBridge()
