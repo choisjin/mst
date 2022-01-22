@@ -873,6 +873,7 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
             self.fps_queue.put(fps)
             darknet.free_image(darknet_image)
 
+
             random.seed(3)  # deterministic bbox colors
      
             frame = self.frame_queue.get()
@@ -887,7 +888,7 @@ class Tracking_Video(QtWidgets.QDialog, Video_Btn_Set, Background_Set): # Train 
 
             now = datetime.datetime.now()
 
-            if not self.ret:
+            if not ret:
                 if self.record == True:
                     print('Recording Stop!')
                     self.record = False

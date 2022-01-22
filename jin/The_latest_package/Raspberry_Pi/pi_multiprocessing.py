@@ -1,9 +1,10 @@
 #-*- coding:utf-8 -*-
 import rospy, cv2, Adafruit_PCA9685 
-from std_msgs.msg import UInt16MultiArray, UInt8MultiArray, Int8
+from std_msgs.msg import UInt16MultiArray
 from sensor_msgs.msg import Image
-from cv_bridge import CvBridge, CvBridgeError
+from cv_bridge import CvBridge
 from multiprocessing import Process
+
 
 global Camera_number
 Camera_number = '1'
@@ -27,12 +28,12 @@ def set_servo_pulse(channel, pulse):
 
 class Cam_Publisher():
     def __call__(self):
-        cap = cv2.VideoCapture(1)               
+        cap = cv2.VideoCapture(0)               
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
-        cap.set(cv2.CAP_PROP_FPS, 20)    
+        cap.set(cv2.CAP_PROP_FPS, 30)    
         
-        rospy.init_node("cam_pub", anonymous=True)
+        rospy.init_node("cam_pub", anonymous = False)
         image_pub = rospy.Publisher("cam_num%s" % Camera_number, Image, queue_size=1)
 
         bridge = CvBridge()
@@ -44,9 +45,12 @@ class Cam_Publisher():
         cap.release()
         cv2.destroyAllWindows()
 
+    def __def__(self):
+        print("p1_exit")
+        
 class Tracking_Subscriber():
     def __call__(self): 
-        rospy.init_node('tracking_subs', anonymous=True)
+        rospy.init_node('tracking_subs', anonymous = False)
         self.tracking_subs = rospy.Subscriber('/cam_tracking%s' % Camera_number,  UInt16MultiArray, self.callback_manual, queue_size=1)
 
         rospy.spin()
@@ -57,9 +61,12 @@ class Tracking_Subscriber():
         pwm.set_pwm(1, 0, servo_x)
         pwm.set_pwm(0, 0, servo_y)
 
+    def __del__(self):
+        print("p2_exit")
+
 class Manual_Subscriber():
     def __call__(self): 
-        rospy.init_node('manual_subs', anonymous=True)
+        rospy.init_node('manual_subs', anonymous = False)
         self.manual_subs = rospy.Subscriber('/manual_control_%s' % Camera_number,  UInt16MultiArray, self.callback_manual, queue_size=1)
 
         rospy.spin()
@@ -70,10 +77,13 @@ class Manual_Subscriber():
         pwm.set_pwm(1, 0, servo_x)
         pwm.set_pwm(0, 0, servo_y)
 
+    def __del__(self):
+        print("p3_exit")
+
 class Cam_Init():
     def __call__(self):
-        rospy.init_node('cam_init_subs', anonymous=True)
-        self.cma_init_subs = rospy.Subscriber('/cam_init_%s' % Camera_number,  UInt16MultiArray, self.callback_manual, queue_size=1)
+        rospy.init_node('cam_init_subs', anonymous = False)
+        self.cma_init_subs = rospy.Subscriber('/cam_init_%s' % Camera_number,  UInt16MultiArray, self.callback_manual, queue_size=2)
 
         rospy.spin()
 
@@ -82,7 +92,9 @@ class Cam_Init():
         servo_y = manual_msg.data[1]    
         pwm.set_pwm(1, 0, servo_x)
         pwm.set_pwm(0, 0, servo_y)
-
+    
+    def __del__(self):
+        print("p4_exit")
 try:    
     p1 = Process(target = Cam_Publisher())          # Cam_data Publisher
     p2 = Process(target = Tracking_Subscriber())    # Tracking_data Subscriber
@@ -98,9 +110,6 @@ except KeyboardInterrupt:
     print("Ctrl + C")
 
 finally:
-    p1.join()
-    p2.join()
-    p3.join()
-    p4.join()
+    
 
     print("exit program")
