@@ -1,6 +1,0 @@
-classes= 2
-train  = data/train.txt
-valid  = data/valid.txt
-names = /home/jin/mst/darknet/data/obj.data
-backup = backup/
-
