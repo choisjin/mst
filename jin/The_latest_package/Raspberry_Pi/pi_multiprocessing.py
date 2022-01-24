@@ -9,10 +9,6 @@ from multiprocessing import Process
 global Camera_number
 Camera_number = '1'
 
-midScreenX = 320/2    # 화면 x축 중앙
-midScreenY = 240/2    # 화면 y축 중앙
-midScreenWindow = 17  # 객체를 인식한 사각형이 중앙에서 벗어날 수 있는 여유 값
-
 pwm = Adafruit_PCA9685.PCA9685() 
 pwm.set_pwm_freq(60) 
 
@@ -28,12 +24,12 @@ def set_servo_pulse(channel, pulse):
 
 class Cam_Publisher():
     def __call__(self):
-        cap = cv2.VideoCapture(0)               
+        cap = cv2.VideoCapture(1)               
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
         cap.set(cv2.CAP_PROP_FPS, 30)    
         
-        rospy.init_node("cam_pub", anonymous = False)
+        rospy.init_node("cam_pub%s" % Camera_number, anonymous = False)
         image_pub = rospy.Publisher("cam_num%s" % Camera_number, Image, queue_size=1)
 
         bridge = CvBridge()
@@ -50,7 +46,7 @@ class Cam_Publisher():
         
 class Tracking_Subscriber():
     def __call__(self): 
-        rospy.init_node('tracking_subs', anonymous = False)
+        rospy.init_node('tracking_subs%s' % Camera_number, anonymous = False)
         self.tracking_subs = rospy.Subscriber('/cam_tracking%s' % Camera_number,  UInt16MultiArray, self.callback_manual, queue_size=1)
 
         rospy.spin()
@@ -66,7 +62,7 @@ class Tracking_Subscriber():
 
 class Manual_Subscriber():
     def __call__(self): 
-        rospy.init_node('manual_subs', anonymous = False)
+        rospy.init_node('manual_subs_%s' % Camera_number, anonymous = False)
         self.manual_subs = rospy.Subscriber('/manual_control_%s' % Camera_number,  UInt16MultiArray, self.callback_manual, queue_size=1)
 
         rospy.spin()
@@ -82,7 +78,7 @@ class Manual_Subscriber():
 
 class Cam_Init():
     def __call__(self):
-        rospy.init_node('cam_init_subs', anonymous = False)
+        rospy.init_node('cam_init_subs_%s' % Camera_number, anonymous = False)
         self.cma_init_subs = rospy.Subscriber('/cam_init_%s' % Camera_number,  UInt16MultiArray, self.callback_manual, queue_size=2)
 
         rospy.spin()
