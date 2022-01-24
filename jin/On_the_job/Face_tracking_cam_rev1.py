@@ -1038,8 +1038,8 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         self.catch_count = 0
     
     def callback(self, data):                           # Cam 데이터 Qt 데이터로 변환 및 객체 인식에 따른 모터 구동 Pub
-        midScreenX = 320/2    # 화면 x축 중앙
-        midScreenY = 240/2    # 화면 y축 중앙
+        midScreenX = 640/2    # 화면 x축 중앙
+        midScreenY = 480/2    # 화면 y축 중앙
         midScreenWindow = 17  # 객체를 인식한 사각형이 중앙에서 벗어날 수 있는 여유 값
 
         self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
@@ -1072,7 +1072,8 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
                     self.miss_count = 0
                     self.now1 = datetime.datetime.now()
             cv2.rectangle(self.cv_image,(x,y),(x+w,y+h),(0,255,0),1)
-
+            print(x)
+            print(y)
             if self.tracking_on_off == 1:
                 self.servo_x1 = int(x+w/2)
                 self.servo_y1 = int(y+h/2)

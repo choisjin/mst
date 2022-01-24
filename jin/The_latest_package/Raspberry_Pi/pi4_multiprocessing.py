@@ -29,8 +29,8 @@ class Cam_Publisher():
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
         cap.set(cv2.CAP_PROP_FPS, 30)    
         
-        rospy.init_node("cam_pub%s" % Camera_number, anonymous = False)
-        image_pub = rospy.Publisher("cam_num%s" % Camera_number, Image, queue_size=1)
+        rospy.init_node("cam_pub_%s" % Camera_number, anonymous = False)
+        image_pub = rospy.Publisher("cam_num_%s" % Camera_number, Image, queue_size=1)
 
         bridge = CvBridge()
 
@@ -46,8 +46,8 @@ class Cam_Publisher():
         
 class Tracking_Subscriber():
     def __call__(self): 
-        rospy.init_node('tracking_subs%s' % Camera_number, anonymous = False)
-        self.tracking_subs = rospy.Subscriber('/cam_tracking%s' % Camera_number,  UInt16MultiArray, self.callback_manual, queue_size=1)
+        rospy.init_node('tracking_subs_%s' % Camera_number, anonymous = False)
+        self.tracking_subs = rospy.Subscriber('/cam_tracking_%s' % Camera_number,  UInt16MultiArray, self.callback_manual, queue_size=1)
 
         rospy.spin()
 
