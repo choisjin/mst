@@ -5,7 +5,6 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from multiprocessing import Process
 
-
 global Camera_number
 Camera_number = '1'
 
@@ -41,7 +40,7 @@ class Cam_Publisher():
         cap.release()
         cv2.destroyAllWindows()
 
-    def __def__(self):
+    def __del__(self):
         print("p1_exit")
         
 class Tracking_Subscriber():
@@ -106,6 +105,4 @@ except KeyboardInterrupt:
     print("Ctrl + C")
 
 finally:
-    
-
     print("exit program")
