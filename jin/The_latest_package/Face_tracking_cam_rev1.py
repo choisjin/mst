@@ -10,8 +10,8 @@ from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from std_msgs.msg import UInt16MultiArray
 from time import sleep
-
-from multiprocessing import Process
+import Queue
+from threading import Thread
 
 #import pymysql
 import darknet_tracking
@@ -1041,25 +1041,39 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
         self.missing_count = 0
         self.miss_count = 1
         self.catch_count = 0
+        
         rospy.init_node('cam_sub_%s' % camera, anonymous = False)
+        global image
+        image = []
+        # q = Queue.Queue()
+        #que = Queue.Queue()
+        self.darknet_start = Thread(target=darknet_tracking.Darknet_Start(), args=(camera, path1[0], image))
+        #self.darknet_start = Thread(target=lambda q, arg1: q.put(darknet_tracking.Darknet_Start(arg1)), args=(que, self.camera, path1[0]))
+        self.darknet_start.start() 
         
+        #print(self.image)
+        #self.sub_control()
+        self.darknet_start.join()
         
-        #self.darknet_start = Process(target=darknet_tracking.Darknet_Start(), args=(self.camera, path1[0]) )
-        if os.fork() == 0:
-            self.darknet_start = darknet_tracking.Darknet_Start(camera, path1[0])
-        else:
-            self._sub = rospy.Subscriber('/cam_num_%s' % camera, Image, self.sub_control, queue_size=1)
-            self.bridge = CvBridge()
-        # self.darknet_start.start() 
-        # self.darknet_start.join()
+        #result = que.get()
+        #print(result) 
+        
+        #print(self.darknet_start.image_return())
+
+
+        #self._sub = rospy.Subscriber('/cam_num_%s' % camera, Image, self.sub_control, queue_size=1)
+        #self.bridge = CvBridge()
+            
+        # self.darknet_start = darknet_tracking.Darknet_Start(camera, path1[0])
+
         #rospy.init_node('cam_sub_%s' % camera, anonymous = False)
         
-    def sub_control(self, data):                           # Cam 데이터 Qt 데이터로 변환 및 객체 인식에 따른 모터 구동 Pub
+    def sub_control(self):                           # Cam 데이터 Qt 데이터로 변환 및 객체 인식에 따른 모터 구동 Pub
         midScreenX = 320/2    # 화면 x축 중앙
         midScreenY = 240/2    # 화면 y축 중앙
         midScreenWindow = 17  # 객체를 인식한 사각형이 중앙에서 벗어날 수 있는 여유 값
 
-        self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+        #self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         #self.cv_image = np.uint8(self.cv_image)                 ########################## 비디오 입력 방법 확인 해서 인자 'self.cv_image'   ex) cam = video 0 -> self.cv_image  한태민
 
         
@@ -1164,7 +1178,7 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
             # self.video.write(self.cv_image)
 
         self.label.resize(640, 480)
-        self.img = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB)
+        self.img = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
         h,w,c = self.img.shape
         qImg = QtGui.QImage(self.img.data, w, h, w*c, QtGui.QImage.Format_RGB888)
         pixmap = QtGui.QPixmap.fromImage(qImg)

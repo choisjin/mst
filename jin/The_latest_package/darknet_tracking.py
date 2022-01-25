@@ -6,20 +6,20 @@ import time
 import darknet
 import argparse
 from threading import Thread, enumerate
-from queue import Queue
+import Queue
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from std_msgs.msg import UInt16MultiArray
 
 class Darknet_Start():
-    def __init__(self, camera, train_path):
-        print('start')
+    def __call__(self, camera, train_path, images):
+        self.images = images
         self.train_path = train_path
-        
-        self.frame_queue = Queue()
-        self.darknet_image_queue = Queue(maxsize=1)
-        self.detections_queue = Queue(maxsize=1)
-        self.fps_queue = Queue(maxsize=1 )
+
+        self.frame_queue = Queue.Queue()
+        self.darknet_image_queue = Queue.Queue(maxsize=1)
+        self.detections_queue = Queue.Queue(maxsize=1)
+        self.fps_queue = Queue.Queue(maxsize=1 )
     
         self.args = self.parser() 
         self.check_arguments_errors(self.args)
@@ -32,11 +32,11 @@ class Darknet_Start():
         self.darknet_width = darknet.network_width(self.network)
         self.darknet_height = darknet.network_height(self.network)
 
-        #rospy.init_node('cam_sub_%s' % camera, anonymous = False)
+        rospy.init_node('cam_sub_%s' % camera, anonymous = False)
         self._sub = rospy.Subscriber('/cam_num_%s' % camera, Image, self.callback, queue_size=1)
-        print('topic')
+
         self.bridge = CvBridge()
-        #rospy.spin()
+
     def parser(self):
         parser = argparse.ArgumentParser(description="YOLO Object Detection")
         parser.add_argument("--weights", default=self.train_path,
@@ -115,10 +115,8 @@ class Darknet_Start():
         return bbox_cropping
 
     def callback(self, data):
-        print('callback')
         self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
 
-        
         frame_rgb = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2RGB)
         frame_resized = cv2.resize(frame_rgb, (self.darknet_width, self.darknet_height),
                                    interpolation=cv2.INTER_LINEAR)
@@ -127,17 +125,13 @@ class Darknet_Start():
         darknet.copy_image_from_bytes(img_for_detect, frame_resized.tobytes())
         self.darknet_image_queue.put(img_for_detect)
 
-        
         darknet_image = self.darknet_image_queue.get()
         prev_time = time.time()
         detections = darknet.detect_image(self.network, self.class_names, darknet_image, thresh=self.args.thresh)
         self.detections_queue.put(detections)
         self.fps = int(1/(time.time() - prev_time))
         self.fps_queue.put(self.fps)
-        print("FPS: {}".format(self.fps))
-        darknet.print_detections(detections, self.args.ext_output)
         darknet.free_image(darknet_image)
-
 
         random.seed(3)  # deterministic bbox colors
 
@@ -149,9 +143,5 @@ class Darknet_Start():
             for label, confidence, bbox in detections:
                 bbox_adjusted = self.convert2original(frame, bbox)
                 detections_adjusted.append((str(label), confidence, bbox_adjusted))
-            image = darknet.draw_boxes(detections_adjusted, frame, self.class_colors)
-            print('image')
-            return image
-    
-    # def image_return(self):        
-        # self.image
+            self.images = darknet.draw_boxes(detections_adjusted, frame, self.class_colors)
+            print(self.images)
