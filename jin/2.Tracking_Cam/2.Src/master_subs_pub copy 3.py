@@ -14,10 +14,8 @@ from PyQt5 import QtCore
 class Rasp_Cam1_Subscriber():
     def __init__(self, camera):
         self.camera=camera
-        if camera == 1 :
-            self._sub = rospy.Subscriber('/camera1/usb_cam1/image_raw', Image, self.callback, queue_size=10)
-        elif camera == 2 :
-            self._sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.callback, queue_size=10)
+
+        self._sub = rospy.Subscriber('/cam_num_1', Image, self.callback, queue_size=10)
         
         self.bridge = CvBridge()
 
@@ -27,7 +25,7 @@ class Rasp_Cam1_Subscriber():
         except CvBridgeError as e:
             print(e)
         
-        faceCascade = cv2.CascadeClassifier('/home/jin/mst/jin/2.Tracking_Cam/2.Src/Data/haarcascade_frontalface_default.xml')
+        faceCascade = cv2.CascadeClassifier('/home/jin/mst/jin/The_latest_package/Data/Train/haarcascade_frontalface_default.xml')
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         faces = faceCascade.detectMultiScale(gray, scaleFactor=1.2, minNeighbors=5, minSize=(60, 60))
         

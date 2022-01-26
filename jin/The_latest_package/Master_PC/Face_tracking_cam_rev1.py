@@ -1007,8 +1007,8 @@ class Tracking_Camera(QtWidgets.QDialog, Cam_Btn_Set, Background_Set):  # Train 
 
         self.camera = camera
         self.people_select = people
-        rospy.init_node('cam_sub%s' % camera, anonymous = False)
-        self._sub = rospy.Subscriber('/cam_num%s' % camera, Image, self.callback, queue_size=1)
+        rospy.init_node('cam_sub_%s' % camera, anonymous = False)
+        self._sub = rospy.Subscriber('/cam_num_%s' % camera, Image, self.callback, queue_size=1)
 
         self.bridge = CvBridge()
 
