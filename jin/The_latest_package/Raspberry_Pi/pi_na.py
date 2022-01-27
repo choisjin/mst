@@ -5,7 +5,7 @@ from cv_bridge import CvBridge
 from multiprocessing import Process
 
 global Camera_number
-Camera_number = '1'
+Camera_number = '3'
 
 class Cam_Publisher():
     def __call__(self):
