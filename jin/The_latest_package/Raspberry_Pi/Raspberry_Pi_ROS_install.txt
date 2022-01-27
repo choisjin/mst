@@ -9,7 +9,7 @@ sudo service dphys-swapfile stop
 
 sudo vi /etc/dphys-swapfile
 
-sudo service dphys-swapfile start
+sudo service dphys-swapfile restart
 
 free -m
 
