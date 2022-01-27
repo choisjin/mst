@@ -24,11 +24,11 @@ def set_servo_pulse(channel, pulse):
 class Cam_Publisher():
     def __call__(self):
         cap = cv2.VideoCapture(0)               
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
-        cap.set(cv2.CAP_PROP_FPS, 30)    
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        cap.set(cv2.CAP_PROP_FPS, 60)    
         
-        rospy.init_node("cam_pub_%s" % Camera_number, anonymous = False)
+        rospy.init_node("cam_pub_%s" % Camera_number,xmlrpc_port=10000, tcpros_port=10004, anonymous = False)
         image_pub = rospy.Publisher("cam_num_%s" % Camera_number, Image, queue_size=1)
 
         bridge = CvBridge()
@@ -45,7 +45,7 @@ class Cam_Publisher():
         
 class Tracking_Subscriber():
     def __call__(self): 
-        rospy.init_node('tracking_subs_%s' % Camera_number, anonymous = False)
+        rospy.init_node('tracking_subs_%s' % Camera_number,xmlrpc_port=10001, anonymous = False)
         self.tracking_subs = rospy.Subscriber('/cam_tracking_%s' % Camera_number,  UInt16MultiArray, self.callback_manual, queue_size=1)
 
         rospy.spin()
@@ -61,7 +61,7 @@ class Tracking_Subscriber():
 
 class Manual_Subscriber():
     def __call__(self): 
-        rospy.init_node('manual_subs_%s' % Camera_number, anonymous = False)
+        rospy.init_node('manual_subs_%s' % Camera_number,xmlrpc_port=10002, anonymous = False)
         self.manual_subs = rospy.Subscriber('/manual_control_%s' % Camera_number,  UInt16MultiArray, self.callback_manual, queue_size=1)
 
         rospy.spin()
@@ -77,7 +77,7 @@ class Manual_Subscriber():
 
 class Cam_Init():
     def __call__(self):
-        rospy.init_node('cam_init_subs_%s' % Camera_number, anonymous = False)
+        rospy.init_node('cam_init_subs_%s' % Camera_number, xmlrpc_port=10003, anonymous = False)
         self.cma_init_subs = rospy.Subscriber('/cam_init_%s' % Camera_number,  UInt16MultiArray, self.callback_manual, queue_size=2)
 
         rospy.spin()
