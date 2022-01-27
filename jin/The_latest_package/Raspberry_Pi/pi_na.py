@@ -9,7 +9,7 @@ Camera_number = '1'
 
 class Cam_Publisher():
     def __call__(self):
-        cap = cv2.VideoCapture(0)               
+        cap = cv2.VideoCapture(1)               
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
         cap.set(cv2.CAP_PROP_FPS, 30)    
